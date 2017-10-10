@@ -1,0 +1,13 @@
+.vscode/
+extern/
+bin/
+asset/
+test/
+*.TMP
+*.exe
+*.dll
+*.spv
+*.vert
+*.geom
+*.frag
+*.sh
