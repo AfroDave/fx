@@ -581,7 +581,6 @@ typedef struct fxCfg {
 FX_API fxCtx fx(fxCfg* cfg);
 FX_API void fx_destroy(fxCtx ctx);
 FX_API void fx_submit(fxCtx ctx, fxCmdBuffer* cmd_buffers, uint32_t count);
-FX_API void fx_flush(fxCtx ctx);
 
 FX_API fxPipeline fx_pipeline(fxCtx ctx, fxPipelineCfg* cfg);
 FX_API void fx_pipeline_destroy(fxCtx ctx, fxPipeline pipeline);
@@ -680,8 +679,8 @@ FX_API void fx_cmd_draw_instanced_indexed(fxCmdBuffer cmd_buffer, fxPrimitiveTyp
 
 static const char* _FX_SHADER_STAGE_NAME[] = {
     "Vertex",
-    "Hull",
-    "Domain",
+    "Tessellation Control",
+    "Tessellation Evaluation",
     "Geometry",
     "Fragment",
 };
@@ -777,7 +776,6 @@ typedef enum fxCmdBufferState {
     FX_CMD_BUFFER_STATE_COUNT
 } fxCmdBufferState;
 
-// SoA -> AoS?
 struct fxCmdBufferT {
     fxCmdBufferState state;
     uint32_t used;
@@ -1098,36 +1096,30 @@ void fx_cmd_scissor(fxCmdBuffer cmd_buffer, uint16_t x, uint16_t y, uint16_t wid
 }
 
 void fx_cmd_bind_pipeline(fxCmdBuffer cmd_buffer, fxPipeline pipeline) {
-    fxCmdBindPipeline* cmd =
-        (fxCmdBindPipeline*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_PIPELINE, sizeof(fxCmdBindPipeline));
+    fxCmdBindPipeline* cmd = (fxCmdBindPipeline*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_PIPELINE, sizeof(fxCmdBindPipeline));
     cmd->pipeline = pipeline;
 }
 
 void fx_cmd_bind_render_target(fxCmdBuffer cmd_buffer, fxRenderTarget render_target) {
-    fxCmdBindRenderTarget* cmd =
-        (fxCmdBindRenderTarget*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_RENDER_TARGET, sizeof(fxCmdBindRenderTarget));
+    fxCmdBindRenderTarget* cmd = (fxCmdBindRenderTarget*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_RENDER_TARGET, sizeof(fxCmdBindRenderTarget));
     cmd->render_target = render_target;
 }
 
 void fx_cmd_bind_vertex_buffers(fxCmdBuffer cmd_buffer, fxBuffer* buffers, uint8_t count) {
     FX_ASSERT(count <= FX_CONFIG_VERTEX_BUFFER_BINDING_MAX);
-    fxCmdBindVertexBuffers* cmd =
-        (fxCmdBindVertexBuffers*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_VERTEX_BUFFERS, sizeof(fxCmdBindVertexBuffers));
+    fxCmdBindVertexBuffers* cmd = (fxCmdBindVertexBuffers*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_VERTEX_BUFFERS, sizeof(fxCmdBindVertexBuffers));
     FX_MEMCOPY(cmd->vertex_buffers, buffers, count * sizeof(fxBuffer));
     cmd->count = count;
 }
 
 void fx_cmd_bind_index_buffer(fxCmdBuffer cmd_buffer, fxBuffer index_buffer, fxIndexType type) {
-    fxCmdBindIndexBuffer* cmd =
-        (fxCmdBindIndexBuffer*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_INDEX_BUFFER, sizeof(fxCmdBindIndexBuffer));
+    fxCmdBindIndexBuffer* cmd = (fxCmdBindIndexBuffer*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_INDEX_BUFFER, sizeof(fxCmdBindIndexBuffer));
     cmd->index_buffer = index_buffer;
     cmd->index_type = type;
 }
 
-void fx_cmd_bind_uniform_buffer(
-    fxCmdBuffer cmd_buffer, fxBuffer uniform_buffer, uint8_t index, uint32_t size, uint32_t offset) {
-    fxCmdBindUniformBuffer* cmd =
-        (fxCmdBindUniformBuffer*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_UNIFORM_BUFFER, sizeof(fxCmdBindUniformBuffer));
+void fx_cmd_bind_uniform_buffer(fxCmdBuffer cmd_buffer, fxBuffer uniform_buffer, uint8_t index, uint32_t size, uint32_t offset) {
+    fxCmdBindUniformBuffer* cmd = (fxCmdBindUniformBuffer*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_UNIFORM_BUFFER, sizeof(fxCmdBindUniformBuffer));
     cmd->uniform_buffer = uniform_buffer;
     cmd->index = index;
     cmd->size = size;
@@ -1135,8 +1127,7 @@ void fx_cmd_bind_uniform_buffer(
 }
 
 void fx_cmd_buffer_update(fxCmdBuffer cmd_buffer, fxBuffer buffer, void* data, uint32_t size, uint32_t offset) {
-    fxCmdBufferUpdate* cmd =
-        (fxCmdBufferUpdate*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BUFFER_UPDATE, sizeof(fxCmdBufferUpdate) + size);
+    fxCmdBufferUpdate* cmd = (fxCmdBufferUpdate*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BUFFER_UPDATE, sizeof(fxCmdBufferUpdate) + size);
     FX_MEMCOPY(cmd + 1, data, size);
     cmd->buffer = buffer;
     cmd->size = size;
@@ -1162,8 +1153,7 @@ void fx_cmd_bind_samplers(fxCmdBuffer cmd_buffer, fxSampler* samplers, uint8_t c
 }
 
 void fx_cmd_bind_texture_units(fxCmdBuffer cmd_buffer, fxTexture* textures, uint8_t* units, uint8_t count) {
-    fxCmdBindTextures* cmd =
-        (fxCmdBindTextures*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_TEXTURES, sizeof(fxCmdBindTextures));
+    fxCmdBindTextures* cmd = (fxCmdBindTextures*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_TEXTURES, sizeof(fxCmdBindTextures));
     FX_MEMCOPY(cmd->textures, textures, count * sizeof(fxTexture));
     if(units) {
         FX_MEMCOPY(cmd->units, units, count * sizeof(uint8_t));
@@ -1174,8 +1164,7 @@ void fx_cmd_bind_texture_units(fxCmdBuffer cmd_buffer, fxTexture* textures, uint
 }
 
 void fx_cmd_bind_sampler_units(fxCmdBuffer cmd_buffer, fxSampler* samplers, uint8_t* units, uint8_t count) {
-    fxCmdBindSamplers* cmd =
-        (fxCmdBindSamplers*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_SAMPLERS, sizeof(fxCmdBindSamplers));
+    fxCmdBindSamplers* cmd = (fxCmdBindSamplers*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_SAMPLERS, sizeof(fxCmdBindSamplers));
     FX_MEMCOPY(cmd->samplers, samplers, count * sizeof(fxSampler));
     if(units) {
         FX_MEMCOPY(cmd->units, units, count * sizeof(uint8_t));
@@ -1202,8 +1191,7 @@ void fx_cmd_texture_blit(fxCmdBuffer cmd_buffer, fxTexture src, fxTexture dst, f
 void fx_cmd_texture_update(fxCmdBuffer cmd_buffer, fxTexture texture, void* data, fxTextureRegion* region) {
     FX_ASSERT(!"Unimplemented");
     (void) data;
-    fxCmdTextureUpdate* cmd =
-        (fxCmdTextureUpdate*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_TEXTURE_UPDATE, sizeof(fxCmdTextureUpdate));
+    fxCmdTextureUpdate* cmd = (fxCmdTextureUpdate*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_TEXTURE_UPDATE, sizeof(fxCmdTextureUpdate));
     cmd->texture = texture;
     cmd->region = *region;
 }
@@ -1215,8 +1203,7 @@ void fx_cmd_draw(fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t cou
     cmd->first_vertex = first_vertex;
 }
 
-void fx_cmd_draw_indexed(
-    fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_index, uint32_t first_vertex) {
+void fx_cmd_draw_indexed(fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_index, uint32_t first_vertex) {
     fxCmdDraw* cmd = (fxCmdDraw*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_DRAW_INDEXED, sizeof(fxCmdDraw));
     cmd->primitive = primitive;
     cmd->count = count;
@@ -1224,21 +1211,17 @@ void fx_cmd_draw_indexed(
     cmd->first_vertex = first_vertex;
 }
 
-void fx_cmd_draw_instanced(
-    fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_vertex, uint32_t instance_count) {
-    fxCmdDrawInstanced* cmd =
-        (fxCmdDrawInstanced*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_DRAW_INSTANCED, sizeof(fxCmdDrawInstanced));
+void fx_cmd_draw_instanced(fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_vertex, uint32_t instance_count) {
+    fxCmdDrawInstanced* cmd = (fxCmdDrawInstanced*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_DRAW_INSTANCED, sizeof(fxCmdDrawInstanced));
     cmd->primitive = primitive;
     cmd->count = count;
     cmd->first_vertex = first_vertex;
     cmd->instance_count = instance_count;
 }
 
-void fx_cmd_draw_instanced_indexed(
-    fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_index, uint32_t first_vertex,
+void fx_cmd_draw_instanced_indexed(fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_index, uint32_t first_vertex,
     uint32_t instance_count) {
-    fxCmdDrawInstanced* cmd =
-        (fxCmdDrawInstanced*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_DRAW_INSTANCED_INDEXED, sizeof(fxCmdDrawInstanced));
+    fxCmdDrawInstanced* cmd = (fxCmdDrawInstanced*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_DRAW_INSTANCED_INDEXED, sizeof(fxCmdDrawInstanced));
     cmd->primitive = primitive;
     cmd->count = count;
     cmd->first_index = first_index;
@@ -1248,8 +1231,6 @@ void fx_cmd_draw_instanced_indexed(
 
 #if defined(FX_GL45_IMPL)
 #include "fx.gl45.h"
-#elif defined(FX_DX11_IMPL)
-#include "fx.dx11.h"
 #else
 #error "No implementation"
 #endif
