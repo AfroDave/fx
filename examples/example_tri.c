@@ -42,7 +42,9 @@ int32_t main(void) {
             fxShaderCfg cfg = {};
             cfg.stage = FX_SHADER_STAGE_VERTEX;
             cfg.source =
-                "#version 450 core\n"
+                "#version 330 core\n"
+                "#extension GL_ARB_shading_language_420pack: enable\n"
+                "#extension GL_ARB_gpu_shader5: enable\n"
                 "void main() {\n"
                 "}\n";
             vertex = fx_shader(ctx, &cfg);
@@ -51,7 +53,9 @@ int32_t main(void) {
             fxShaderCfg cfg = {};
             cfg.stage = FX_SHADER_STAGE_GEOMETRY;
             cfg.source =
-                "#version 450\n"
+                "#version 330 core\n"
+                "#extension GL_ARB_shading_language_420pack: enable\n"
+                "#extension GL_ARB_gpu_shader5: enable\n"
                 "layout(points) in;\n"
                 "layout(triangle_strip, max_vertices = 3) out;\n"
                 "out vec2 f_texcoord0;\n"
@@ -74,7 +78,9 @@ int32_t main(void) {
             fxShaderCfg cfg = {};
             cfg.stage = FX_SHADER_STAGE_FRAGMENT;
             cfg.source =
-                "#version 450 core\n"
+                "#version 330 core\n"
+                "#extension GL_ARB_shading_language_420pack: enable\n"
+                "#extension GL_ARB_gpu_shader5: enable\n"
                 "out vec4 o_colour;\n"
                 "void main() {\n"
                 "    o_colour = vec4(1.0f);\n"
@@ -100,6 +106,9 @@ int32_t main(void) {
         fx_cmd_end_pass(cmd_buffer);
 
         fx_submit(ctx, &cmd_buffer, 1);
+
+        fx_cmd_buffer_reset(cmd_buffer);
+
         glfwSwapBuffers(w);
         glfwPollEvents();
     }
@@ -108,5 +117,4 @@ int32_t main(void) {
 }
 
 #define FX_IMPL
-#define FX_GL45_IMPL
 #include "../fx.h"

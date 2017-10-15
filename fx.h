@@ -114,7 +114,10 @@ enum {
     // fxPipelineRasterCfg flags
     FX_PIPELINE_RASTER_DEPTH_CLAMP = 1 << 0,
     FX_PIPELINE_RASTER_SCISSOR_TEST = 1 << 1,
-    FX_PIPELINE_RASTER_ALPHA_TO_COVERAGE = 1 << 2
+    FX_PIPELINE_RASTER_ALPHA_TO_COVERAGE = 1 << 2,
+
+    // fx_cmd_barrier flags
+    FX_BARRIER_ALL = 0x7FFFFFFF
 };
 
 typedef enum fxCompareOp {
@@ -257,10 +260,6 @@ typedef enum fxFormat {
     FX_FORMAT_R16G16B16A16IN,
     FX_FORMAT_R16G16B16A16U,
     FX_FORMAT_R16G16B16A16I,
-    FX_FORMAT_B16G16R16A16UN,
-    FX_FORMAT_B16G16R16A16IN,
-    FX_FORMAT_B16G16R16A16U,
-    FX_FORMAT_B16G16R16A16I,
 
     FX_FORMAT_R32UN,
     FX_FORMAT_R32IN,
@@ -278,10 +277,6 @@ typedef enum fxFormat {
     FX_FORMAT_R32G32B32A32IN,
     FX_FORMAT_R32G32B32A32U,
     FX_FORMAT_R32G32B32A32I,
-    FX_FORMAT_B32G32R32A32UN,
-    FX_FORMAT_B32G32R32A32IN,
-    FX_FORMAT_B32G32R32A32U,
-    FX_FORMAT_B32G32R32A32I,
 
     FX_FORMAT_R16FN,
     FX_FORMAT_R16F,
@@ -291,8 +286,6 @@ typedef enum fxFormat {
     FX_FORMAT_R16G16B16F,
     FX_FORMAT_R16G16B16A16FN,
     FX_FORMAT_R16G16B16A16F,
-    FX_FORMAT_B16G16R16A16FN,
-    FX_FORMAT_B16G16R16A16F,
 
     FX_FORMAT_R32FN,
     FX_FORMAT_R32F,
@@ -302,8 +295,6 @@ typedef enum fxFormat {
     FX_FORMAT_R32G32B32F,
     FX_FORMAT_R32G32B32A32FN,
     FX_FORMAT_R32G32B32A32F,
-    FX_FORMAT_B32G32R32A32FN,
-    FX_FORMAT_B32G32R32A32F,
 
     FX_FORMAT_D16UN,
     FX_FORMAT_D24S8UN,
@@ -626,6 +617,8 @@ FX_API void fx_cmd_buffer_update(fxCmdBuffer cmd_buffer, fxBuffer buffer, void* 
 FX_API void fx_cmd_buffer_copy(fxCmdBuffer cmd_buffer, fxBuffer src, fxBuffer dst, uint32_t src_offset, uint32_t dst_offset, uint32_t size);
 
 FX_API void fx_cmd_texture_copy(fxCmdBuffer cmd_buffer, fxTexture src, fxTexture dst, fxTextureRegion* region);
+
+FX_API void fx_cmd_barrier(fxCmdBuffer cmd_buffer, uint32_t flags);
 
 FX_API void fx_cmd_draw(fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_vertex);
 FX_API void fx_cmd_draw_indexed(fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_index, uint32_t first_vertex);
@@ -1075,6 +1068,7 @@ void fx_cmd_end_pass(fxCmdBuffer cmd_buffer) {
 }
 
 void fx_cmd_barrier(fxCmdBuffer cmd_buffer, uint32_t flags) {
+    FX_ASSERT(flags == FX_BARRIER_ALL);
     fxCmdBarrier* cmd = (fxCmdBarrier*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BARRIER, sizeof(fxCmdBarrier));
     cmd->flags = flags;
 }
@@ -1134,8 +1128,7 @@ void fx_cmd_buffer_update(fxCmdBuffer cmd_buffer, fxBuffer buffer, void* data, u
     cmd->offset = offset;
 }
 
-void fx_cmd_buffer_copy(
-    fxCmdBuffer cmd_buffer, fxBuffer src, fxBuffer dst, uint32_t src_offset, uint32_t dst_offset, uint32_t size) {
+void fx_cmd_buffer_copy(fxCmdBuffer cmd_buffer, fxBuffer src, fxBuffer dst, uint32_t src_offset, uint32_t dst_offset, uint32_t size) {
     fxCmdBufferCopy* cmd = (fxCmdBufferCopy*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BUFFER_COPY, sizeof(fxCmdBufferCopy));
     cmd->src = src;
     cmd->dst = dst;
@@ -1231,6 +1224,8 @@ void fx_cmd_draw_instanced_indexed(fxCmdBuffer cmd_buffer, fxPrimitiveType primi
 
 #if defined(FX_GL45_IMPL)
 #include "fx.gl45.h"
+#elif defined(FX_GL33_IMPL)
+#include "fx.gl33.h"
 #else
 #error "No implementation"
 #endif
