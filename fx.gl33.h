@@ -27,8 +27,8 @@
     X(PFNGLDEPTHMASKPROC, void, glDepthMask, GLboolean flag)                                                                                                                                                                                                                                       \
     X(PFNGLDISABLEPROC, void, glDisable, GLenum cap)                                                                                                                                                                                                                                               \
     X(PFNGLENABLEPROC, void, glEnable, GLenum cap)                                                                                                                                                                                                                                                 \
-    X(PFNGLFINISHPROC, void, glFinish, )                                                                                                                                                                                                                                                           \
-    X(PFNGLFLUSHPROC, void, glFlush, )                                                                                                                                                                                                                                                             \
+    X(PFNGLFINISHPROC, void, glFinish)                                                                                                                                                                                                                                                             \
+    X(PFNGLFLUSHPROC, void, glFlush)                                                                                                                                                                                                                                                               \
     X(PFNGLBLENDFUNCPROC, void, glBlendFunc, GLenum sfactor, GLenum dfactor)                                                                                                                                                                                                                       \
     X(PFNGLLOGICOPPROC, void, glLogicOp, GLenum opcode)                                                                                                                                                                                                                                            \
     X(PFNGLSTENCILFUNCPROC, void, glStencilFunc, GLenum func, GLint ref, GLuint mask)                                                                                                                                                                                                              \
@@ -40,7 +40,7 @@
     X(PFNGLREADPIXELSPROC, void, glReadPixels, GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels)                                                                                                                                                          \
     X(PFNGLGETBOOLEANVPROC, void, glGetBooleanv, GLenum pname, GLboolean *data)                                                                                                                                                                                                                    \
     X(PFNGLGETDOUBLEVPROC, void, glGetDoublev, GLenum pname, GLdouble *data)                                                                                                                                                                                                                       \
-    X(PFNGLGETERRORPROC, GLenum, glGetError, )                                                                                                                                                                                                                                                     \
+    X(PFNGLGETERRORPROC, GLenum, glGetError)                                                                                                                                                                                                                                                       \
     X(PFNGLGETFLOATVPROC, void, glGetFloatv, GLenum pname, GLfloat *data)                                                                                                                                                                                                                          \
     X(PFNGLGETINTEGERVPROC, void, glGetIntegerv, GLenum pname, GLint *data)                                                                                                                                                                                                                        \
     X(PFNGLGETSTRINGPROC, const GLubyte*, glGetString, GLenum name)                                                                                                                                                                                                                                \
@@ -114,7 +114,7 @@
     X(PFNGLATTACHSHADERPROC, void, glAttachShader, GLuint program, GLuint shader)                                                                                                                                                                                                                  \
     X(PFNGLBINDATTRIBLOCATIONPROC, void, glBindAttribLocation, GLuint program, GLuint index, const GLchar *name)                                                                                                                                                                                   \
     X(PFNGLCOMPILESHADERPROC, void, glCompileShader, GLuint shader)                                                                                                                                                                                                                                \
-    X(PFNGLCREATEPROGRAMPROC, GLuint, glCreateProgram, )                                                                                                                                                                                                                                           \
+    X(PFNGLCREATEPROGRAMPROC, GLuint, glCreateProgram)                                                                                                                                                                                                                                             \
     X(PFNGLCREATESHADERPROC, GLuint, glCreateShader, GLenum type)                                                                                                                                                                                                                                  \
     X(PFNGLDELETEPROGRAMPROC, void, glDeleteProgram, GLuint program)                                                                                                                                                                                                                               \
     X(PFNGLDELETESHADERPROC, void, glDeleteShader, GLuint shader)                                                                                                                                                                                                                                  \
@@ -212,14 +212,14 @@
     X(PFNGLDISABLEIPROC, void, glDisablei, GLenum target, GLuint index)                                                                                                                                                                                                                            \
     X(PFNGLISENABLEDIPROC, GLboolean, glIsEnabledi, GLenum target, GLuint index)                                                                                                                                                                                                                   \
     X(PFNGLBEGINTRANSFORMFEEDBACKPROC, void, glBeginTransformFeedback, GLenum primitiveMode)                                                                                                                                                                                                       \
-    X(PFNGLENDTRANSFORMFEEDBACKPROC, void, glEndTransformFeedback, )                                                                                                                                                                                                                               \
+    X(PFNGLENDTRANSFORMFEEDBACKPROC, void, glEndTransformFeedback)                                                                                                                                                                                                                                 \
     X(PFNGLBINDBUFFERRANGEPROC, void, glBindBufferRange, GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)                                                                                                                                                             \
     X(PFNGLBINDBUFFERBASEPROC, void, glBindBufferBase, GLenum target, GLuint index, GLuint buffer)                                                                                                                                                                                                 \
     X(PFNGLTRANSFORMFEEDBACKVARYINGSPROC, void, glTransformFeedbackVaryings, GLuint program, GLsizei count, const GLchar *const*varyings, GLenum bufferMode)                                                                                                                                       \
     X(PFNGLGETTRANSFORMFEEDBACKVARYINGPROC, void, glGetTransformFeedbackVarying, GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name)                                                                                                        \
     X(PFNGLCLAMPCOLORPROC, void, glClampColor, GLenum target, GLenum clamp)                                                                                                                                                                                                                        \
     X(PFNGLBEGINCONDITIONALRENDERPROC, void, glBeginConditionalRender, GLuint id, GLenum mode)                                                                                                                                                                                                     \
-    X(PFNGLENDCONDITIONALRENDERPROC, void, glEndConditionalRender, )                                                                                                                                                                                                                               \
+    X(PFNGLENDCONDITIONALRENDERPROC, void, glEndConditionalRender)                                                                                                                                                                                                                                 \
     X(PFNGLVERTEXATTRIBIPOINTERPROC, void, glVertexAttribIPointer, GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer)                                                                                                                                                     \
     X(PFNGLGETVERTEXATTRIBIIVPROC, void, glGetVertexAttribIiv, GLuint index, GLenum pname, GLint *params)                                                                                                                                                                                          \
     X(PFNGLGETVERTEXATTRIBIUIVPROC, void, glGetVertexAttribIuiv, GLuint index, GLenum pname, GLuint *params)                                                                                                                                                                                       \
@@ -536,8 +536,8 @@ static const GLenum _FX_GL33_BUFFER_USAGE[] = {
 };
 
 static struct {
-    uint64_t size;
-    GLenum count;
+    uint8_t size;
+    uint8_t count;
     GLboolean normalised;
     GLenum type;
     GLenum internal_format;
@@ -759,12 +759,12 @@ struct fxBackendRenderTarget {
 };
 
 typedef struct fxBackendVertexAttrib {
-    uint64_t binding: 4;
-    uint64_t location: 4;
-    uint64_t normalised: 1;
-    uint64_t count: 3;
-    uint64_t type: 16;
-    uint64_t offset: 8;
+    uint32_t binding: 3;
+    uint32_t location: 3;
+    uint32_t normalised: 1;
+    uint32_t count: 3;
+    uint32_t type: 16;
+    uint32_t offset: 6;
 } fxBackendVertexAttrib;
 
 typedef struct fxBackendLayout {
@@ -859,11 +859,11 @@ struct fxBackendCtx {
 #undef _FX_GL33_FN_DECL
 };
 
-#define FX_GL(ctx, fn, ...) (ctx)->fn(__VA_ARGS__); _FX_GL33_LINE = __LINE__
+#define FX_GL(ctx, fn) (ctx)->fn; _FX_GL33_LINE = __LINE__
 
 static void _fx_backend_destroy(fxBackendCtx* ctx) {
-    FX_GL(ctx, glDeleteVertexArrays, 1, &ctx->cache.vertex_array);
-    FX_GL(ctx, glBindVertexArray, 0);
+    FX_GL(ctx, glDeleteVertexArrays(1, &ctx->cache.vertex_array));
+    FX_GL(ctx, glBindVertexArray(0));
 }
 
 static fxBackendProgram _fx_backend_program(fxBackendCtx* ctx, fxPipelineShaderCfg* cfg) {
@@ -873,28 +873,27 @@ static fxBackendProgram _fx_backend_program(fxBackendCtx* ctx, fxPipelineShaderC
     FX_ASSERT(cfg->tessellation_evaluation == NULL);
     fxBackendProgram res = {};
 
-    res.name = FX_GL(ctx, glCreateProgram);
+    res.name = FX_GL(ctx, glCreateProgram());
 
     res.stages[FX_SHADER_STAGE_VERTEX].name = cfg->vertex->name;
-    FX_GL(ctx, glAttachShader, res.name, res.stages[FX_SHADER_STAGE_VERTEX].name);
+    FX_GL(ctx, glAttachShader(res.name, res.stages[FX_SHADER_STAGE_VERTEX].name));
 
     if(cfg->geometry) {
         res.stages[FX_SHADER_STAGE_GEOMETRY].name = cfg->geometry->name;
-        FX_GL(ctx, glAttachShader, res.name, res.stages[FX_SHADER_STAGE_GEOMETRY].name);
+        FX_GL(ctx, glAttachShader(res.name, res.stages[FX_SHADER_STAGE_GEOMETRY].name));
     }
 
     res.stages[FX_SHADER_STAGE_FRAGMENT].name = cfg->fragment->name;
-    FX_GL(ctx, glAttachShader, res.name, res.stages[FX_SHADER_STAGE_FRAGMENT].name);
+    FX_GL(ctx, glAttachShader(res.name, res.stages[FX_SHADER_STAGE_FRAGMENT].name));
 
-    FX_GL(ctx, glLinkProgram, res.name);
+    FX_GL(ctx, glLinkProgram(res.name));
 
     GLint log_size = 0;
-    FX_GL(ctx, glGetProgramiv, res.name, GL_INFO_LOG_LENGTH, &log_size);
+    FX_GL(ctx, glGetProgramiv(res.name, GL_INFO_LOG_LENGTH, &log_size));
     if(log_size) {
         char log[4096];
-        int32_t log_size = 0;
-        FX_GL(ctx, glGetProgramInfoLog, res.name, sizeof(log), &log_size, log);
-        FX_GL(ctx, glDeleteProgram, res.name);
+        FX_GL(ctx, glGetProgramInfoLog(res.name, sizeof(log), &log_size, log));
+        FX_GL(ctx, glDeleteProgram(res.name));
         log[log_size] = '\0';
         ctx->log(ctx->usr, "%s\n", log);
         FX_ASSERT(!"Failed to link program");
@@ -939,12 +938,12 @@ static void _fx_backend_pipeline_destroy(fxBackendCtx* ctx, fxBackendPipeline* p
 }
 
 static void _fx_backend_buffer_internal(fxBackendCtx* ctx, uint32_t* buffers, uint32_t count, void* data, uint32_t size, GLenum target, uint32_t usage) {
-    FX_GL(ctx, glGenBuffers, count, buffers);
+    FX_GL(ctx, glGenBuffers(count, buffers));
     for(uint32_t i = 0; i < count; i++) {
-        FX_GL(ctx, glBindBuffer, target, buffers[i]);
-        FX_GL(ctx, glBufferData, target, size, data, usage);
+        FX_GL(ctx, glBindBuffer(target, buffers[i]));
+        FX_GL(ctx, glBufferData(target, size, data, usage));
     }
-    FX_GL(ctx, glBindBuffer, target, 0);
+    FX_GL(ctx, glBindBuffer(target, 0));
 }
 
 static fxBackendBuffer* _fx_backend_buffer(fxBackendCtx* ctx, fxBufferCfg* cfg, void* data, uint32_t size) {
@@ -960,15 +959,15 @@ static fxBackendBuffer* _fx_backend_buffer(fxBackendCtx* ctx, fxBufferCfg* cfg, 
 }
 
 static void _fx_backend_buffer_destroy(fxBackendCtx* ctx, fxBackendBuffer* buffer) {
-    FX_GL(ctx, glDeleteBuffers, 1, &buffer->name);
+    FX_GL(ctx, glDeleteBuffers(1, &buffer->name));
     fx_pool_free(&ctx->buffer_allocator, buffer);
 }
 
 static void _fx_backend_buffer_update(fxBackendCtx* ctx, fxBackendBuffer* buffer, void* data, uint32_t size, uint32_t offset) {
     FX_ASSERT(buffer->usage == GL_DYNAMIC_DRAW);
     FX_ASSERT(offset + size <= buffer->size);
-    FX_GL(ctx, glBindBuffer, buffer->target, buffer->name);
-    FX_GL(ctx, glBufferSubData, buffer->target, offset, size, data);
+    FX_GL(ctx, glBindBuffer(buffer->target, buffer->name));
+    FX_GL(ctx, glBufferSubData(buffer->target, offset, size, data));
 }
 
 static fxBackendTexture* _fx_backend_texture(fxBackendCtx* ctx, fxTextureCfg* cfg, void* data, uint32_t size) {
@@ -982,42 +981,42 @@ static fxBackendTexture* _fx_backend_texture(fxBackendCtx* ctx, fxTextureCfg* cf
     res->flags = cfg->flags;
     bool compressed = cfg->format >= FX_FORMAT_BC1 && cfg->format <= FX_FORMAT_ETC2A1;
     cfg->mipmaps = FX_MAX(1, cfg->mipmaps);
-    FX_GL(ctx, glGenTextures, 1, &res->name);
-    FX_GL(ctx, glActiveTexture, GL_TEXTURE0);
-    FX_GL(ctx, glBindTexture, res->target, res->name);
-    FX_GL(ctx, glTexImage2D, res->target, 0, _FX_GL33_FORMAT[cfg->format].internal_format, cfg->width, cfg->height, 0, _FX_GL33_FORMAT[cfg->format].format, _FX_GL33_FORMAT[cfg->format].type, NULL);
+    FX_GL(ctx, glGenTextures(1, &res->name));
+    FX_GL(ctx, glActiveTexture(GL_TEXTURE0));
+    FX_GL(ctx, glBindTexture(res->target, res->name));
+    FX_GL(ctx, glTexImage2D(res->target, 0, _FX_GL33_FORMAT[cfg->format].internal_format, cfg->width, cfg->height, 0, _FX_GL33_FORMAT[cfg->format].format, _FX_GL33_FORMAT[cfg->format].type, NULL));
     if(data) {
         if(compressed) {
-            FX_GL(ctx, glCompressedTexSubImage2D, res->target, 0, 0, 0, cfg->width, cfg->height, res->format, size, data);
+            FX_GL(ctx, glCompressedTexSubImage2D(res->target, 0, 0, 0, cfg->width, cfg->height, res->format, size, data));
         } else {
-            FX_GL(ctx, glTexSubImage2D, res->target, 0, 0, 0, cfg->width, cfg->height, _FX_GL33_FORMAT[cfg->format].format, _FX_GL33_FORMAT[cfg->format].type, data);
+            FX_GL(ctx, glTexSubImage2D(res->target, 0, 0, 0, cfg->width, cfg->height, _FX_GL33_FORMAT[cfg->format].format, _FX_GL33_FORMAT[cfg->format].type, data));
         }
     }
 
     if(cfg->swizzle_r != FX_SWIZZLE_INDENTITY) {
-        FX_GL(ctx, glTexParameteri, res->target, GL_TEXTURE_SWIZZLE_R, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_r]);
+        FX_GL(ctx, glTexParameteri(res->target, GL_TEXTURE_SWIZZLE_R, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_r]));
     }
     if(cfg->swizzle_g != FX_SWIZZLE_INDENTITY) {
-        FX_GL(ctx, glTexParameteri, res->target, GL_TEXTURE_SWIZZLE_G, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_g]);
+        FX_GL(ctx, glTexParameteri(res->target, GL_TEXTURE_SWIZZLE_G, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_g]));
     }
     if(cfg->swizzle_b != FX_SWIZZLE_INDENTITY) {
-        FX_GL(ctx, glTexParameteri, res->target, GL_TEXTURE_SWIZZLE_B, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_b]);
+        FX_GL(ctx, glTexParameteri(res->target, GL_TEXTURE_SWIZZLE_B, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_b]));
     }
     if(cfg->swizzle_a != FX_SWIZZLE_INDENTITY) {
-        FX_GL(ctx, glTexParameteri, res->target, GL_TEXTURE_SWIZZLE_A, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_a]);
+        FX_GL(ctx, glTexParameteri(res->target, GL_TEXTURE_SWIZZLE_A, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_a]));
     }
     return res;
 }
 
 static void _fx_backend_texture_destroy(fxBackendCtx* ctx, fxBackendTexture* texture) {
-    FX_GL(ctx, glDeleteTextures, 1, &texture->name);
+    FX_GL(ctx, glDeleteTextures(1, &texture->name));
     fx_pool_free(&ctx->texture_allocator, texture);
 }
 
 static void _fx_backend_texture_update(fxBackendCtx* ctx, fxBackendTexture* texture, void* data, fxTextureRegion* region) {
-    FX_GL(ctx, glTexSubImage2D,
+    FX_GL(ctx, glTexSubImage2D(
         texture->name, 0, region->src_offset.x, region->src_offset.y,
-        region->width, region->height, texture->format, texture->type, data);
+        region->width, region->height, texture->format, texture->type, data));
 }
 
 static fxBackendSampler* _fx_backend_sampler(fxBackendCtx* ctx, fxSamplerCfg* cfg) {
@@ -1025,22 +1024,22 @@ static fxBackendSampler* _fx_backend_sampler(fxBackendCtx* ctx, fxSamplerCfg* cf
     FX_ASSERT(res != NULL);
 
     res->flags = cfg->flags;
-    FX_GL(ctx, glGenSamplers, 1, &res->name);
+    FX_GL(ctx, glGenSamplers(1, &res->name));
     if(cfg->filter_mipmap != FX_FILTER_MIPMAP_MODE_NONE) {
-        FX_GL(ctx, glSamplerParameteri, res->name, GL_TEXTURE_MIN_FILTER, _FX_GL33_FILTER_TYPE[cfg->filter_min]);
-        FX_GL(ctx, glSamplerParameteri, res->name, GL_TEXTURE_MAG_FILTER, _FX_GL33_FILTER_MIPMAP_TYPE[cfg->filter_mipmap]);
+        FX_GL(ctx, glSamplerParameteri(res->name, GL_TEXTURE_MIN_FILTER, _FX_GL33_FILTER_TYPE[cfg->filter_min]));
+        FX_GL(ctx, glSamplerParameteri(res->name, GL_TEXTURE_MAG_FILTER, _FX_GL33_FILTER_MIPMAP_TYPE[cfg->filter_mipmap]));
     } else {
-        FX_GL(ctx, glSamplerParameteri, res->name, GL_TEXTURE_MIN_FILTER, _FX_GL33_FILTER_TYPE[cfg->filter_min]);
-        FX_GL(ctx, glSamplerParameteri, res->name, GL_TEXTURE_MAG_FILTER, _FX_GL33_FILTER_TYPE[cfg->filter_mag]);
+        FX_GL(ctx, glSamplerParameteri(res->name, GL_TEXTURE_MIN_FILTER, _FX_GL33_FILTER_TYPE[cfg->filter_min]));
+        FX_GL(ctx, glSamplerParameteri(res->name, GL_TEXTURE_MAG_FILTER, _FX_GL33_FILTER_TYPE[cfg->filter_mag]));
     }
-    FX_GL(ctx, glSamplerParameteri, res->name, GL_TEXTURE_WRAP_S, _FX_GL33_WRAP_TYPE[cfg->wrap_u]);
-    FX_GL(ctx, glSamplerParameteri, res->name, GL_TEXTURE_WRAP_T, _FX_GL33_WRAP_TYPE[cfg->wrap_v]);
-    FX_GL(ctx, glSamplerParameteri, res->name, GL_TEXTURE_WRAP_R, _FX_GL33_WRAP_TYPE[cfg->wrap_w]);
+    FX_GL(ctx, glSamplerParameteri(res->name, GL_TEXTURE_WRAP_S, _FX_GL33_WRAP_TYPE[cfg->wrap_u]));
+    FX_GL(ctx, glSamplerParameteri(res->name, GL_TEXTURE_WRAP_T, _FX_GL33_WRAP_TYPE[cfg->wrap_v]));
+    FX_GL(ctx, glSamplerParameteri(res->name, GL_TEXTURE_WRAP_R, _FX_GL33_WRAP_TYPE[cfg->wrap_w]));
     return res;
 }
 
 static void _fx_backend_sampler_destroy(fxBackendCtx* ctx, fxBackendSampler* sampler) {
-    FX_GL(ctx, glDeleteSamplers, 1, &sampler->name);
+    FX_GL(ctx, glDeleteSamplers(1, &sampler->name));
     fx_pool_free(&ctx->sampler_allocator, sampler);
 }
 
@@ -1049,24 +1048,24 @@ static fxBackendPass* _fx_backend_pass(fxBackendCtx* ctx, fxPassCfg* cfg) {
     fxBackendPass* res = (fxBackendPass*) fx_pool_alloc(&ctx->pass_allocator);
     res->count = 0;
     FX_ASSERT(res != NULL);
-    FX_GL(ctx, glGenFramebuffers, 1, &res->name);
-    FX_GL(ctx, glBindFramebuffer, GL_FRAMEBUFFER, res->name);
+    FX_GL(ctx, glGenFramebuffers(1, &res->name));
+    FX_GL(ctx, glBindFramebuffer(GL_FRAMEBUFFER, res->name));
     for(uint64_t i = 0; i < FX_CONFIG_ATTACHMENT_MAX; i++) {
         if(!cfg->colours[i].texture) {
             break;
         }
         fxBackendTexture* colour = (fxBackendTexture*) cfg->colours[i].texture;
-        FX_GL(ctx, glFramebufferTexture, GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, colour->name, 0);
+        FX_GL(ctx, glFramebufferTexture(GL_FRAMEBUFFER, (GLenum) (GL_COLOR_ATTACHMENT0 + i), colour->name, 0));
         res->count++;
     }
     fxBackendTexture* depth_stencil = (fxBackendTexture*) cfg->depth_stencil.texture;
     if(depth_stencil) {
         fxBackendTexture* gl_depth_stencil = (fxBackendTexture*) depth_stencil;
         GLenum depth_attachment = GL_DEPTH_STENCIL_ATTACHMENT;
-        FX_GL(ctx, glFramebufferTexture, GL_FRAMEBUFFER, depth_attachment, gl_depth_stencil->name, 0);
+        FX_GL(ctx, glFramebufferTexture(GL_FRAMEBUFFER, depth_attachment, gl_depth_stencil->name, 0));
     }
     if(ctx->glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        FX_GL(ctx, glDeleteFramebuffers, 1, &res->name);
+        FX_GL(ctx, glDeleteFramebuffers(1, &res->name));
         fx_pool_free(&ctx->pass_allocator, res);
         res = NULL;
     }
@@ -1074,7 +1073,7 @@ static fxBackendPass* _fx_backend_pass(fxBackendCtx* ctx, fxPassCfg* cfg) {
 }
 
 static void _fx_backend_pass_destroy(fxBackendCtx* ctx, fxBackendPass* pass) {
-    FX_GL(ctx, glDeleteFramebuffers, 1, &pass->name);
+    FX_GL(ctx, glDeleteFramebuffers(1, &pass->name));
     fx_pool_free(&ctx->pass_allocator, pass);
 }
 
@@ -1098,22 +1097,21 @@ static fxBackendShader* _fx_backend_shader(fxBackendCtx* ctx, fxShaderCfg* cfg) 
     } else {
 #endif
         const char* sources[] = { cfg->source };
-        res->name = FX_GL(ctx, glCreateShader, _FX_GL33_SHADER_STAGE[cfg->stage]);
-        FX_GL(ctx, glShaderSource, res->name, FX_COUNT_OF(sources), sources, NULL);
-        FX_GL(ctx, glCompileShader, res->name);
+        res->name = FX_GL(ctx, glCreateShader(_FX_GL33_SHADER_STAGE[cfg->stage]));
+        FX_GL(ctx, glShaderSource(res->name, FX_COUNT_OF(sources), sources, NULL));
+        FX_GL(ctx, glCompileShader(res->name));
 #if 0
     }
 #endif
 
     GLint log_size = 0;
-    FX_GL(ctx, glGetShaderiv, res->name, GL_INFO_LOG_LENGTH, &log_size);
+    FX_GL(ctx, glGetShaderiv(res->name, GL_INFO_LOG_LENGTH, &log_size));
     GLint status = 0;
-    FX_GL(ctx, glGetShaderiv, res->name, GL_COMPILE_STATUS, &status);
+    FX_GL(ctx, glGetShaderiv(res->name, GL_COMPILE_STATUS, &status));
     if(!status) {
         char log[4096];
-        int32_t log_size = 0;
-        FX_GL(ctx, glGetShaderInfoLog, res->name, sizeof(log), &log_size, log);
-        FX_GL(ctx, glDeleteShader, res->name);
+        FX_GL(ctx, glGetShaderInfoLog(res->name, sizeof(log), &log_size, log));
+        FX_GL(ctx, glDeleteShader(res->name));
         log[log_size] = '\0';
         ctx->log(ctx->usr, "%s\n", log);
         FX_ASSERT(!"Failed to compile shader");
@@ -1122,12 +1120,12 @@ static fxBackendShader* _fx_backend_shader(fxBackendCtx* ctx, fxShaderCfg* cfg) 
 
     //GLint input_count = 0, uniform_count = 0, output_count = 0;
     //GLint input_name_max = 0, uniform_name_max = 0, output_name_max = 0;
-    //FX_GL(ctx, glGetProgramInterfaceiv, res->name, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &input_count);
-    //FX_GL(ctx, glGetProgramInterfaceiv, res->name, GL_UNIFORM, GL_ACTIVE_RESOURCES, &uniform_count);
-    //FX_GL(ctx, glGetProgramInterfaceiv, res->name, GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &output_count);
-    //FX_GL(ctx, glGetProgramInterfaceiv, res->name, GL_PROGRAM_INPUT, GL_MAX_NAME_LENGTH, &input_name_max);
-    //FX_GL(ctx, glGetProgramInterfaceiv, res->name, GL_UNIFORM, GL_MAX_NAME_LENGTH, &uniform_name_max);
-    //FX_GL(ctx, glGetProgramInterfaceiv, res->name, GL_PROGRAM_OUTPUT, GL_MAX_NAME_LENGTH, &output_name_max);
+    //FX_GL(ctx, glGetProgramInterfaceiv(res->name, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &input_count));
+    //FX_GL(ctx, glGetProgramInterfaceiv(res->name, GL_UNIFORM, GL_ACTIVE_RESOURCES, &uniform_count));
+    //FX_GL(ctx, glGetProgramInterfaceiv(res->name, GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &output_count));
+    //FX_GL(ctx, glGetProgramInterfaceiv(res->name, GL_PROGRAM_INPUT, GL_MAX_NAME_LENGTH, &input_name_max));
+    //FX_GL(ctx, glGetProgramInterfaceiv(res->name, GL_UNIFORM, GL_MAX_NAME_LENGTH, &uniform_name_max));
+    //FX_GL(ctx, glGetProgramInterfaceiv(res->name, GL_PROGRAM_OUTPUT, GL_MAX_NAME_LENGTH, &output_name_max));
 
     //uint32_t name_max = FX_MAX(input_name_max, FX_MAX(uniform_name_max, output_name_max));
     //char* name = (char*) alloca(name_max + 1);
@@ -1136,11 +1134,11 @@ static fxBackendShader* _fx_backend_shader(fxBackendCtx* ctx, fxShaderCfg* cfg) 
     //for(int32_t i = 0; i < input_count; i++) {
     //    GLint count = 0;
     //    GLenum type = 0;
-    //    FX_GL(ctx, glGetProgramResourceName, res->name, GL_PROGRAM_INPUT, i, name_max + 1, &count, name);
+    //    FX_GL(ctx, glGetProgramResourceName(res->name, GL_PROGRAM_INPUT, i, name_max + 1, &count, name));
     //    GLenum props[] = {
     //        GL_TYPE,
     //    };
-    //    FX_GL(ctx, glGetProgramResourceiv, res->name, GL_PROGRAM_INPUT, i, FX_COUNT_OF(props), props, 1, NULL, (GLint*) &type);
+    //    FX_GL(ctx, glGetProgramResourceiv(res->name, GL_PROGRAM_INPUT, i, FX_COUNT_OF(props), props, 1, NULL, (GLint*) &type));
     //    ctx->log(ctx->usr, "\t\tlayout(location = %d) in %s %s\n", ctx->glGetAttribLocation(res->name, name), _fx_glsl_type_name(type), name);
     //}
 
@@ -1160,8 +1158,8 @@ static fxBackendShader* _fx_backend_shader(fxBackendCtx* ctx, fxShaderCfg* cfg) 
     //        GL_LOCATION,
     //        GL_ARRAY_SIZE,
     //    };
-    //    FX_GL(ctx, glGetProgramResourceName, res->name, GL_UNIFORM, i, name_max + 1, NULL, name);
-    //    FX_GL(ctx, glGetProgramResourceiv, res->name, GL_UNIFORM, i, FX_COUNT_OF(props), props, 1, NULL, (GLint*) &info);
+    //    FX_GL(ctx, glGetProgramResourceName(res->name, GL_UNIFORM, i, name_max + 1, NULL, name));
+    //    FX_GL(ctx, glGetProgramResourceiv(res->name, GL_UNIFORM, i, FX_COUNT_OF(props), props, 1, NULL, (GLint*) &info));
     //    count = info.count;
     //    type = info.type;
     //    ctx->log(ctx->usr,
@@ -1176,8 +1174,8 @@ static fxBackendShader* _fx_backend_shader(fxBackendCtx* ctx, fxShaderCfg* cfg) 
     //        GL_LOCATION,
     //        GL_ARRAY_SIZE,
     //    };
-    //    FX_GL(ctx, glGetProgramResourceName, res->name, GL_PROGRAM_OUTPUT, i, name_max + 1, NULL, name);
-    //    FX_GL(ctx, glGetProgramResourceiv,  res->name, GL_PROGRAM_OUTPUT, i, FX_COUNT_OF(props), props, 1, NULL, (GLint*) &info);
+    //    FX_GL(ctx, glGetProgramResourceName(res->name, GL_PROGRAM_OUTPUT, i, name_max + 1, NULL, name));
+    //    FX_GL(ctx, glGetProgramResourceiv( res->name, GL_PROGRAM_OUTPUT, i, FX_COUNT_OF(props), props, 1, NULL, (GLint*) &info));
     //    ctx->log(ctx->usr, "\t\tlayout(location = %d) out %s %s\n", info.location, _fx_glsl_type_name(info.type), name);
     //}
 
@@ -1186,7 +1184,7 @@ static fxBackendShader* _fx_backend_shader(fxBackendCtx* ctx, fxShaderCfg* cfg) 
 
 static void _fx_backend_shader_destroy(fxBackendCtx* ctx, fxBackendShader* shader) {
     fxBackendShader* gl_shader = (fxBackendShader*) shader;
-    FX_GL(ctx, glDeleteShader, gl_shader->name);
+    FX_GL(ctx, glDeleteShader(gl_shader->name));
     fx_pool_free(&ctx->shader_allocator, gl_shader);
 }
 
@@ -1199,7 +1197,7 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
             case FX_CMD_TYPE_BEGIN_PASS: {
                 fxCmdBeginPass* cmd = (fxCmdBeginPass*) raw_cmd;
                 fxBackendPass* pass = (fxBackendPass*) (cmd->pass ? cmd->pass: &ctx->default_pass);
-                FX_GL(ctx, glBindFramebuffer, GL_FRAMEBUFFER, pass->name);
+                FX_GL(ctx, glBindFramebuffer(GL_FRAMEBUFFER, pass->name));
                 fxPassOp* ops = &cmd->ops;
                 for(uint32_t i = 0; i < pass->count; i++) {
                     float colour[4];
@@ -1208,14 +1206,14 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                     colour[2] = ((ops->colours[i].clear >> 8) & 0xFF) * (1.0f / 255.0f);
                     colour[3] = ((ops->colours[i].clear >> 0) & 0xFF) * (1.0f / 255.0f);
                     if(ops->colours[i].type == FX_PASS_OP_TYPE_CLEAR) {
-                        FX_GL(ctx, glClearBufferfv, GL_COLOR, i, colour);
+                        FX_GL(ctx, glClearBufferfv(GL_COLOR, i, colour));
                     }
                 }
                 if(ops->depth.type == FX_PASS_OP_TYPE_CLEAR) {
-                    FX_GL(ctx, glClearBufferfv, GL_DEPTH, 0, &ops->depth.clear);
+                    FX_GL(ctx, glClearBufferfv(GL_DEPTH, 0, &ops->depth.clear));
                 }
                 if(ops->stencil.type == FX_PASS_OP_TYPE_CLEAR) {
-                    FX_GL(ctx, glClearBufferiv, GL_STENCIL, 0, &ops->stencil.clear);
+                    FX_GL(ctx, glClearBufferiv(GL_STENCIL, 0, &ops->stencil.clear));
                 }
             } break;
             case FX_CMD_TYPE_END_PASS: {
@@ -1224,15 +1222,15 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                 FX_ASSERT(!"GL33: Memory Barrier Unsupported");
                 fxCmdBarrier* cmd = (fxCmdBarrier*) raw_cmd;
                 (void) cmd;
-                //FX_GL(ctx, glMemoryBarrier, GL_ALL_BARRIER_BITS);
+                //FX_GL(ctx, glMemoryBarrier(GL_ALL_BARRIER_BITS));
             } break;
             case FX_CMD_TYPE_VIEWPORT: {
                 fxCmdViewport* cmd = (fxCmdViewport*) raw_cmd;
-                FX_GL(ctx, glViewport, cmd->x, cmd->y, cmd->width, cmd->height);
+                FX_GL(ctx, glViewport(cmd->x, cmd->y, cmd->width, cmd->height));
             } break;
             case FX_CMD_TYPE_SCISSOR: {
                 fxCmdScissor* cmd = (fxCmdScissor*) raw_cmd;
-                FX_GL(ctx, glScissor, cmd->x, cmd->y, cmd->width, cmd->height);
+                FX_GL(ctx, glScissor(cmd->x, cmd->y, cmd->width, cmd->height));
             } break;
             case FX_CMD_TYPE_BIND_PIPELINE: {
                 fxCmdBindPipeline* cmd = (fxCmdBindPipeline*) raw_cmd;
@@ -1244,31 +1242,31 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                     if(ctx->cache.depth_stencil.depth_test != depth_test) {
                         ctx->cache.depth_stencil.depth_test = depth_test;
                         if(depth_test) {
-                            FX_GL(ctx, glEnable, GL_DEPTH_TEST);
+                            FX_GL(ctx, glEnable(GL_DEPTH_TEST));
                         } else {
-                            FX_GL(ctx, glDisable, GL_DEPTH_TEST);
+                            FX_GL(ctx, glDisable(GL_DEPTH_TEST));
                         }
                     }
 
                     GLenum depth_op = _FX_GL33_COMPARE_FUNC[pipeline->depth_stencil.depth_op];
                     if(ctx->cache.depth_stencil.depth_op != depth_op) {
                         ctx->cache.depth_stencil.depth_op = depth_op;
-                        FX_GL(ctx, glDepthFunc, depth_op);
+                        FX_GL(ctx, glDepthFunc(depth_op));
                     }
 
                     bool depth_write = pipeline->depth_stencil.flags & FX_PIPELINE_DEPTH_STENCIL_DEPTH_WRITE;
                     if(ctx->cache.depth_stencil.depth_write != depth_write) {
                         ctx->cache.depth_stencil.depth_write = depth_write;
-                        FX_GL(ctx, glDepthMask, depth_write);
+                        FX_GL(ctx, glDepthMask(depth_write));
                     }
 
                     bool stencil_test = pipeline->depth_stencil.flags & FX_PIPELINE_DEPTH_STENCIL_STENCIL_TEST;
                     if(ctx->cache.depth_stencil.stencil_test != stencil_test) {
                         ctx->cache.depth_stencil.stencil_test = stencil_test;
                         if(stencil_test) {
-                            FX_GL(ctx, glEnable, GL_STENCIL_TEST);
+                            FX_GL(ctx, glEnable(GL_STENCIL_TEST));
                         } else {
-                            FX_GL(ctx, glDisable, GL_STENCIL_TEST);
+                            FX_GL(ctx, glDisable(GL_STENCIL_TEST));
                         }
                     }
 
@@ -1278,9 +1276,9 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                         ctx->cache.depth_stencil.front.op_cmp = pipeline->depth_stencil.front.op_cmp;
                         ctx->cache.depth_stencil.front.mask_cmp = pipeline->depth_stencil.front.mask_cmp;
                         ctx->cache.depth_stencil.front.ref = pipeline->depth_stencil.front.ref;
-                        FX_GL(ctx, glStencilFuncSeparate,
+                        FX_GL(ctx, glStencilFuncSeparate(
                             GL_FRONT, _FX_GL33_COMPARE_FUNC[pipeline->depth_stencil.front.op_cmp],
-                            pipeline->depth_stencil.front.ref, pipeline->depth_stencil.front.mask_cmp);
+                            pipeline->depth_stencil.front.ref, pipeline->depth_stencil.front.mask_cmp));
                     }
 
                     if(ctx->cache.depth_stencil.front.op_cmp != pipeline->depth_stencil.back.op_cmp ||
@@ -1289,9 +1287,9 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                         ctx->cache.depth_stencil.back.op_cmp = pipeline->depth_stencil.back.op_cmp;
                         ctx->cache.depth_stencil.back.mask_cmp = pipeline->depth_stencil.back.mask_cmp;
                         ctx->cache.depth_stencil.back.ref = pipeline->depth_stencil.back.ref;
-                        FX_GL(ctx, glStencilFuncSeparate,
+                        FX_GL(ctx, glStencilFuncSeparate(
                             GL_BACK, _FX_GL33_COMPARE_FUNC[pipeline->depth_stencil.back.op_cmp],
-                            pipeline->depth_stencil.back.ref, pipeline->depth_stencil.back.mask_cmp);
+                            pipeline->depth_stencil.back.ref, pipeline->depth_stencil.back.mask_cmp));
                     }
 
                     if(ctx->cache.depth_stencil.front.op_fail != pipeline->depth_stencil.front.op_fail ||
@@ -1300,10 +1298,10 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                         ctx->cache.depth_stencil.front.op_fail = pipeline->depth_stencil.front.op_fail;
                         ctx->cache.depth_stencil.front.op_pass = pipeline->depth_stencil.front.op_pass;
                         ctx->cache.depth_stencil.front.op_depth_fail = pipeline->depth_stencil.front.op_depth_fail;
-                        FX_GL(ctx, glStencilOpSeparate,
+                        FX_GL(ctx, glStencilOpSeparate(
                             GL_FRONT, _FX_GL33_STENCIL_OP[pipeline->depth_stencil.front.op_fail],
                             _FX_GL33_STENCIL_OP[pipeline->depth_stencil.front.op_depth_fail],
-                            _FX_GL33_STENCIL_OP[pipeline->depth_stencil.front.op_pass]);
+                            _FX_GL33_STENCIL_OP[pipeline->depth_stencil.front.op_pass]));
                     }
 
                     if(ctx->cache.depth_stencil.back.op_fail != pipeline->depth_stencil.back.op_fail ||
@@ -1312,19 +1310,19 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                         ctx->cache.depth_stencil.back.op_fail = pipeline->depth_stencil.back.op_fail;
                         ctx->cache.depth_stencil.back.op_pass = pipeline->depth_stencil.back.op_pass;
                         ctx->cache.depth_stencil.back.op_depth_fail = pipeline->depth_stencil.back.op_depth_fail;
-                        FX_GL(ctx, glStencilOpSeparate,
+                        FX_GL(ctx, glStencilOpSeparate(
                             GL_BACK, _FX_GL33_STENCIL_OP[pipeline->depth_stencil.back.op_fail],
                             _FX_GL33_STENCIL_OP[pipeline->depth_stencil.back.op_depth_fail],
-                            _FX_GL33_STENCIL_OP[pipeline->depth_stencil.back.op_pass]);
+                            _FX_GL33_STENCIL_OP[pipeline->depth_stencil.back.op_pass]));
                     }
 
                     bool blend = pipeline->blend.flags & FX_PIPELINE_BLEND;
                     if(ctx->cache.blend.enabled != blend) {
                         ctx->cache.blend.enabled = blend;
                         if(blend) {
-                            FX_GL(ctx, glEnable, GL_BLEND);
+                            FX_GL(ctx, glEnable(GL_BLEND));
                         } else {
-                            FX_GL(ctx, glDisable, GL_BLEND);
+                            FX_GL(ctx, glDisable(GL_BLEND));
                         }
                     }
 
@@ -1332,27 +1330,27 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                        ctx->cache.blend.factor_dst_colour != pipeline->blend.factor_dst_colour ||
                        ctx->cache.blend.factor_src_alpha != pipeline->blend.factor_src_alpha ||
                        ctx->cache.blend.factor_dst_alpha != pipeline->blend.factor_dst_alpha) {
-                        FX_GL(ctx, glBlendFuncSeparate,
+                        FX_GL(ctx, glBlendFuncSeparate(
                             _FX_GL33_BLEND_FACTOR[pipeline->blend.factor_src_colour],
                             _FX_GL33_BLEND_FACTOR[pipeline->blend.factor_dst_colour],
                             _FX_GL33_BLEND_FACTOR[pipeline->blend.factor_src_alpha],
-                            _FX_GL33_BLEND_FACTOR[pipeline->blend.factor_dst_alpha]);
+                            _FX_GL33_BLEND_FACTOR[pipeline->blend.factor_dst_alpha]));
                     }
 
                     if(ctx->cache.blend.op_colour != pipeline->blend.op_colour ||
                        ctx->cache.blend.op_colour != pipeline->blend.op_colour) {
-                        FX_GL(ctx, glBlendEquationSeparate,
+                        FX_GL(ctx, glBlendEquationSeparate(
                                     _FX_GL33_BLEND_OP[pipeline->blend.op_colour],
-                                    _FX_GL33_BLEND_OP[pipeline->blend.op_alpha]);
+                                    _FX_GL33_BLEND_OP[pipeline->blend.op_alpha]));
                     }
 
                     if(ctx->cache.blend.colour_mask != pipeline->blend.colour_mask) {
                         ctx->cache.blend.colour_mask = pipeline->blend.colour_mask;
-                        FX_GL(ctx, glColorMask,
+                        FX_GL(ctx, glColorMask(
                             !(pipeline->blend.colour_mask & FX_COLOUR_MASK_R),
                             !(pipeline->blend.colour_mask & FX_COLOUR_MASK_G),
                             !(pipeline->blend.colour_mask & FX_COLOUR_MASK_B),
-                            !(pipeline->blend.colour_mask & FX_COLOUR_MASK_A));
+                            !(pipeline->blend.colour_mask & FX_COLOUR_MASK_A)));
                     }
 
                     if(ctx->cache.blend.colour[0] != pipeline->blend.colour[0] ||
@@ -1363,11 +1361,11 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                         ctx->cache.blend.colour[1] = pipeline->blend.colour[1];
                         ctx->cache.blend.colour[2] = pipeline->blend.colour[2];
                         ctx->cache.blend.colour[3] = pipeline->blend.colour[3];
-                        FX_GL(ctx, glBlendColor,
+                        FX_GL(ctx, glBlendColor(
                             pipeline->blend.colour[0],
                             pipeline->blend.colour[1],
                             pipeline->blend.colour[2],
-                            pipeline->blend.colour[3]);
+                            pipeline->blend.colour[3]));
                     }
 
                     bool logic = pipeline->blend.flags & FX_PIPELINE_BLEND_LOGIC;
@@ -1376,10 +1374,10 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                         ctx->cache.blend.logic_enabled = logic;
                         ctx->cache.blend.op_logic = op_logic;
                         if(logic) {
-                            FX_GL(ctx, glEnable, GL_COLOR_LOGIC_OP);
-                            FX_GL(ctx, glLogicOp, op_logic);
+                            FX_GL(ctx, glEnable(GL_COLOR_LOGIC_OP));
+                            FX_GL(ctx, glLogicOp(op_logic));
                         } else {
-                            FX_GL(ctx, glDisable, GL_COLOR_LOGIC_OP);
+                            FX_GL(ctx, glDisable(GL_COLOR_LOGIC_OP));
                         }
                     }
 
@@ -1387,26 +1385,26 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                     if(ctx->cache.raster.cull != cull) {
                         ctx->cache.raster.cull = cull;
                         if(cull) {
-                            FX_GL(ctx, glEnable, GL_CULL_FACE);
-                            FX_GL(ctx, glCullFace, cull);
+                            FX_GL(ctx, glEnable(GL_CULL_FACE));
+                            FX_GL(ctx, glCullFace(cull));
                         } else {
-                            FX_GL(ctx, glDisable, GL_CULL_FACE);
+                            FX_GL(ctx, glDisable(GL_CULL_FACE));
                         }
                     }
 
                     GLenum winding = _FX_GL33_FRONT_FACE[pipeline->raster.winding];
                     if(ctx->cache.raster.winding != winding) {
                         ctx->cache.raster.winding = winding;
-                        FX_GL(ctx, glFrontFace, winding);
+                        FX_GL(ctx, glFrontFace(winding));
                     }
 
                     bool scissor = pipeline->raster.flags & FX_PIPELINE_RASTER_SCISSOR_TEST;
                     if(ctx->cache.raster.scissor != scissor) {
                         ctx->cache.raster.scissor = scissor;
                         if(scissor) {
-                            FX_GL(ctx, glEnable, GL_SCISSOR_TEST);
+                            FX_GL(ctx, glEnable(GL_SCISSOR_TEST));
                         } else {
-                            FX_GL(ctx, glDisable, GL_SCISSOR_TEST);
+                            FX_GL(ctx, glDisable(GL_SCISSOR_TEST));
                         }
                     }
 
@@ -1414,41 +1412,41 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                     if(ctx->cache.raster.alpha_to_coverage != alpha_to_coverage) {
                         ctx->cache.raster.alpha_to_coverage = alpha_to_coverage;
                         if(alpha_to_coverage) {
-                            FX_GL(ctx, glEnable, GL_SAMPLE_ALPHA_TO_COVERAGE);
+                            FX_GL(ctx, glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE));
                         } else {
-                            FX_GL(ctx, glDisable, GL_SAMPLE_ALPHA_TO_COVERAGE);
+                            FX_GL(ctx, glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE));
                         }
                     }
 
                     if(ctx->cache.raster.point_size != pipeline->raster.point_size) {
                         ctx->cache.raster.point_size = pipeline->raster.point_size;
                         if(pipeline->raster.point_size > 0.0f) {
-                            FX_GL(ctx, glPointSize, pipeline->raster.point_size);
+                            FX_GL(ctx, glPointSize(pipeline->raster.point_size));
                         }
                     }
 
                     if(ctx->cache.raster.fill != _FX_GL33_POLYGON[pipeline->raster.fill]) {
                         ctx->cache.raster.fill = _FX_GL33_POLYGON[pipeline->raster.fill];
-                        FX_GL(ctx, glPolygonMode, GL_FRONT_AND_BACK, _FX_GL33_POLYGON[pipeline->raster.fill]);
+                        FX_GL(ctx, glPolygonMode(GL_FRONT_AND_BACK, _FX_GL33_POLYGON[pipeline->raster.fill]));
                     }
 
                     if(ctx->cache.raster.line_width != pipeline->raster.line_width) {
                         ctx->cache.raster.line_width = pipeline->raster.line_width;
                         if(pipeline->raster.line_width > 0.0f) {
-                            FX_GL(ctx, glLineWidth, pipeline->raster.line_width);
+                            FX_GL(ctx, glLineWidth(pipeline->raster.line_width));
                         }
                     }
 
                     if(ctx->cache.raster.samples != pipeline->raster.samples) {
                         ctx->cache.raster.samples = pipeline->raster.samples;
                         if(pipeline->raster.samples > 0) {
-                            FX_GL(ctx, glEnable, GL_MULTISAMPLE);
+                            FX_GL(ctx, glEnable(GL_MULTISAMPLE));
                         } else {
-                            FX_GL(ctx, glDisable, GL_MULTISAMPLE);
+                            FX_GL(ctx, glDisable(GL_MULTISAMPLE));
                         }
                     }
 
-                    FX_GL(ctx, glUseProgram, pipeline->program.name);
+                    FX_GL(ctx, glUseProgram(pipeline->program.name));
                 }
             } break;
             case FX_CMD_TYPE_BIND_VERTEX_BUFFERS: {
@@ -1460,15 +1458,15 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                         fxBackendPipeline* pipeline = ctx->cache.pipeline;
                         fxBackendLayout* layout = &pipeline->layouts[i];
                         FX_ASSERT(cmd->vertex_buffers[i]->target == GL_ARRAY_BUFFER);
-                        FX_GL(ctx, glBindBuffer, GL_ARRAY_BUFFER, name);
-                        FX_GL(ctx, glVertexAttribDivisor, i, layout->rate);
+                        FX_GL(ctx, glBindBuffer(GL_ARRAY_BUFFER, name));
+                        FX_GL(ctx, glVertexAttribDivisor(i, layout->rate));
                         for(uint32_t j = 0; j < layout->count; j++) {
                             fxBackendVertexAttrib attrib = layout->attribs[j];
                             if(attrib.type == 0) {
                                 break;
                             }
-                            FX_GL(ctx, glEnableVertexAttribArray, attrib.location);
-                            FX_GL(ctx, glVertexAttribPointer, attrib.location, attrib.count, attrib.type, attrib.normalised, layout->stride, (void*) (uintptr_t) attrib.offset);
+                            FX_GL(ctx, glEnableVertexAttribArray(attrib.location));
+                            FX_GL(ctx, glVertexAttribPointer(attrib.location, attrib.count, attrib.type, attrib.normalised, layout->stride, (void*) (uintptr_t) attrib.offset));
                         }
                     }
                 }
@@ -1479,7 +1477,7 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                 if(ctx->cache.binding.index != name) {
                     ctx->cache.binding.index = name;
                     ctx->cache.binding.index_type = _FX_GL33_INDEX_TYPE[cmd->index_type];
-                    FX_GL(ctx, glBindBuffer, GL_ELEMENT_ARRAY_BUFFER, name);
+                    FX_GL(ctx, glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, name));
                 }
             } break;
             case FX_CMD_TYPE_BIND_UNIFORM_BUFFER: {
@@ -1487,7 +1485,7 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                 uint32_t name = cmd->uniform_buffer->name;
                 if(ctx->cache.binding.uniform[cmd->index] != name) {
                     ctx->cache.binding.uniform[cmd->index] = name;
-                    FX_GL(ctx, glBindBufferRange, GL_UNIFORM_BUFFER, cmd->index, name, cmd->offset, cmd->size);
+                    FX_GL(ctx, glBindBufferRange(GL_UNIFORM_BUFFER, cmd->index, name, cmd->offset, cmd->size));
                 }
             } break;
             case FX_CMD_TYPE_BUFFER_UPDATE: {
@@ -1501,9 +1499,9 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                 fxCmdBufferCopy* cmd = (fxCmdBufferCopy*) raw_cmd;
                 fxBackendBuffer* src = (fxBackendBuffer*) cmd->src;
                 fxBackendBuffer* dst = (fxBackendBuffer*) cmd->dst;
-                FX_GL(ctx, glBindBuffer, GL_COPY_READ_BUFFER, src->name);
-                FX_GL(ctx, glBindBuffer, GL_COPY_WRITE_BUFFER, dst->name);
-                FX_GL(ctx, glCopyBufferSubData, GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, cmd->src_offset, cmd->dst_offset, cmd->size == FX_ALL ? src->size: cmd->size);
+                FX_GL(ctx, glBindBuffer(GL_COPY_READ_BUFFER, src->name));
+                FX_GL(ctx, glBindBuffer(GL_COPY_WRITE_BUFFER, dst->name));
+                FX_GL(ctx, glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, cmd->src_offset, cmd->dst_offset, cmd->size == FX_ALL ? src->size: cmd->size));
             } break;
             case FX_CMD_TYPE_BIND_TEXTURES: {
                 fxCmdBindTextures* cmd = (fxCmdBindTextures*) raw_cmd;
@@ -1512,8 +1510,8 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                     if(ctx->cache.binding.texture[i] != name) {
                         ctx->cache.binding.texture[i] = name;
                         uint8_t unit = (cmd->units[i] == ((uint8_t) -1)) ? i: cmd->units[i];
-                        FX_GL(ctx, glActiveTexture, GL_TEXTURE0 + unit);
-                        FX_GL(ctx, glBindTexture, cmd->textures[i]->target, name);
+                        FX_GL(ctx, glActiveTexture(GL_TEXTURE0 + unit));
+                        FX_GL(ctx, glBindTexture(cmd->textures[i]->target, name));
                     }
                 }
             } break;
@@ -1523,7 +1521,7 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                     uint32_t name = cmd->samplers[i]->name;
                     if(ctx->cache.binding.sampler[i] != name) {
                         ctx->cache.binding.sampler[i] = name;
-                        FX_GL(ctx, glBindSampler, cmd->units[i] == ((uint8_t) -1) ? i: cmd->units[i], name);
+                        FX_GL(ctx, glBindSampler(cmd->units[i] == ((uint8_t) -1) ? i: cmd->units[i], name));
                     }
                 }
             } break;
@@ -1533,52 +1531,52 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                 //fxBackendTexture* src = (fxBackendTexture*) cmd->src;
                 //fxBackendTexture* dst = (fxBackendTexture*) cmd->dst;
                 //fxTextureRegion region = cmd->region;
-                //FX_GL(ctx, glBindTexture, GL_COPY_READ_BUFFER, src->name);
-                //FX_GL(ctx, glBindTexture, GL_COPY_WRITE_BUFFER, dst->name);
-                //FX_GL(ctx, glCopyImageSubData,
+                //FX_GL(ctx, glBindTexture(GL_COPY_READ_BUFFER, src->name));
+                //FX_GL(ctx, glBindTexture(GL_COPY_WRITE_BUFFER, dst->name));
+                //FX_GL(ctx, glCopyImageSubDat)(
                 //    GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, region.src_offset.x, region.src_offset.y, region.src_offset.z, dst->name,
                 //    dst->target, 0, region.dst_offset.x, region.dst_offset.y, region.dst_offset.z,
                 //    FX_MAX(1, region.width), FX_MAX(1, region.height), FX_MAX(1, region.depth));
 
-                //FX_GL(ctx, glCopyBufferSubData, GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, cmd->src_offset, cmd->dst_offset, cmd->size == FX_ALL ? src->size: cmd->size);
+                //FX_GL(ctx, glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, cmd->src_offset, cmd->dst_offset, cmd->size == FX_ALL ? src->size: cmd->size));
             } break;
             case FX_CMD_TYPE_TEXTURE_BLIT: {
                 fxCmdTextureBlit* cmd = (fxCmdTextureBlit*) raw_cmd;
                 fxBackendTexture* src = (fxBackendTexture*) cmd->src;
                 fxBackendTexture* dst = (fxBackendTexture*) cmd->dst;
                 fxTextureRegion region = cmd->region;
-                FX_GL(ctx, glBindFramebuffer, GL_READ_FRAMEBUFFER, src->name);
-                FX_GL(ctx, glBindFramebuffer, GL_DRAW_FRAMEBUFFER, dst->name);
-                FX_GL(ctx, glBlitFramebuffer,
+                FX_GL(ctx, glBindFramebuffer(GL_READ_FRAMEBUFFER, src->name));
+                FX_GL(ctx, glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dst->name));
+                FX_GL(ctx, glBlitFramebuffer(
                     region.src_offset.x, region.src_offset.y, region.src_offset.x + region.width, region.src_offset.y + region.height,
                     region.dst_offset.x, region.dst_offset.y, region.dst_offset.x + region.width, region.dst_offset.y + region.height,
-                    GL_COLOR_BUFFER_BIT, GL_NEAREST);
+                    GL_COLOR_BUFFER_BIT, GL_NEAREST));
             } break;
             case FX_CMD_TYPE_DRAW: {
                 fxCmdDraw* cmd = (fxCmdDraw*) raw_cmd;
-                FX_GL(ctx, glDrawArrays, _FX_GL33_PRIMITIVE[cmd->primitive], cmd->first_vertex, cmd->count);
+                FX_GL(ctx, glDrawArrays(_FX_GL33_PRIMITIVE[cmd->primitive], cmd->first_vertex, cmd->count));
             } break;
             case FX_CMD_TYPE_DRAW_INDEXED: {
                 fxCmdDraw* cmd = (fxCmdDraw*) raw_cmd;
                 GLenum index_type = ctx->cache.binding.index_type;
                 void* offset = (void*) ((uint64_t) cmd->first_index * (index_type == GL_UNSIGNED_SHORT ? sizeof(uint16_t): sizeof(uint32_t)));
-                FX_GL(ctx, glDrawElementsBaseVertex, _FX_GL33_PRIMITIVE[cmd->primitive], cmd->count, index_type, offset, cmd->first_vertex);
+                FX_GL(ctx, glDrawElementsBaseVertex(_FX_GL33_PRIMITIVE[cmd->primitive], cmd->count, index_type, offset, cmd->first_vertex));
             } break;
             case FX_CMD_TYPE_DRAW_INSTANCED: {
                 fxCmdDrawInstanced* cmd = (fxCmdDrawInstanced*) raw_cmd;
-                FX_GL(ctx, glDrawArraysInstanced, _FX_GL33_PRIMITIVE[cmd->primitive], cmd->first_vertex, cmd->count, cmd->instance_count);
+                FX_GL(ctx, glDrawArraysInstanced(_FX_GL33_PRIMITIVE[cmd->primitive], cmd->first_vertex, cmd->count, cmd->instance_count));
             } break;
             case FX_CMD_TYPE_DRAW_INSTANCED_INDEXED: {
                 fxCmdDrawInstanced* cmd = (fxCmdDrawInstanced*) raw_cmd;
                 GLenum index_type = ctx->cache.binding.index_type;
                 void* offset = (void*) ((uint64_t) cmd->first_index * (index_type == GL_UNSIGNED_SHORT ? sizeof(uint16_t): sizeof(uint32_t)));
-                FX_GL(ctx, glDrawElementsInstancedBaseVertex, _FX_GL33_PRIMITIVE[cmd->primitive], cmd->count, index_type, offset, cmd->instance_count, cmd->first_vertex);
+                FX_GL(ctx, glDrawElementsInstancedBaseVertex(_FX_GL33_PRIMITIVE[cmd->primitive], cmd->count, index_type, offset, cmd->instance_count, cmd->first_vertex));
             } break;
             default: { FX_ASSERT(!"Unimplemented"); } break;
         }
         cmds += sizeof(fxCmdHeader) + header->size;
     } while(cmds < (cmd_buffer->cmds + cmd_buffer->used));
-    // FX_GL(ctx, glFinish);
+    // FX_GL(ctx, glFinish());
 }
 
 static void _fx_backend_debug_callback(
@@ -1629,24 +1627,24 @@ fxBackendCtx* fx_backend(fxCfg* cfg, fxBackendApi* api) {
     res->default_pass.name = 0;
     res->default_pass.count = 1;
 
-    FX_GL(res, glDisable, GL_DEPTH_TEST);
-    FX_GL(res, glDepthFunc, GL_ALWAYS);
-    FX_GL(res, glDepthMask, GL_FALSE);
-    FX_GL(res, glDisable, GL_STENCIL_TEST);
+    FX_GL(res, glDisable(GL_DEPTH_TEST));
+    FX_GL(res, glDepthFunc(GL_ALWAYS));
+    FX_GL(res, glDepthMask(GL_FALSE));
+    FX_GL(res, glDisable(GL_STENCIL_TEST));
 
-    FX_GL(res, glDisable, GL_BLEND);
-    FX_GL(res, glBlendFuncSeparate, GL_ONE, GL_ZERO, GL_ONE, GL_ZERO);
-    FX_GL(res, glBlendEquationSeparate, GL_FUNC_ADD, GL_FUNC_ADD);
-    FX_GL(res, glColorMask, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    FX_GL(res, glBlendColor, 0.0f, 0.0f, 0.0f, 0.0f);
+    FX_GL(res, glDisable(GL_BLEND));
+    FX_GL(res, glBlendFuncSeparate(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO));
+    FX_GL(res, glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD));
+    FX_GL(res, glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
+    FX_GL(res, glBlendColor(0.0f, 0.0f, 0.0f, 0.0f));
 
-    FX_GL(res, glDisable, GL_CULL_FACE);
-    FX_GL(res, glFrontFace, GL_CCW);
-    FX_GL(res, glCullFace, GL_BACK);
-    FX_GL(res, glDisable, GL_POLYGON_OFFSET_FILL);
-    FX_GL(res, glDisable, GL_SCISSOR_TEST);
-    FX_GL(res, glDisable, GL_SAMPLE_ALPHA_TO_COVERAGE);
-    FX_GL(res, glEnable, GL_DITHER);
+    FX_GL(res, glDisable(GL_CULL_FACE));
+    FX_GL(res, glFrontFace(GL_CCW));
+    FX_GL(res, glCullFace(GL_BACK));
+    FX_GL(res, glDisable(GL_POLYGON_OFFSET_FILL));
+    FX_GL(res, glDisable(GL_SCISSOR_TEST));
+    FX_GL(res, glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE));
+    FX_GL(res, glEnable(GL_DITHER));
 
     res->cache.depth_stencil.depth_op = GL_ALWAYS;
     res->cache.raster.winding = GL_CCW;

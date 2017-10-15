@@ -34,10 +34,12 @@ int32_t main(void) {
 
     example(WIDTH, HEIGHT, "Example Textured Cube");
 
-    fxCfg cfg = {};
-    cfg.log = fn_log;
-    cfg.fn_address = fn_address;
-    fxCtx ctx = fx(&cfg);
+    fxCtx ctx; {
+        fxCfg cfg = {};
+        cfg.log = fn_log;
+        cfg.fn_address = fn_address;
+        ctx = fx(&cfg);
+    }
 
     typedef struct Vertex {
         float position[3];
@@ -140,6 +142,7 @@ int32_t main(void) {
             cfg.stage = FX_SHADER_STAGE_VERTEX;
             cfg.source =
                 "#version 330 core\n"
+                "#extension GL_ARB_explicit_uniform_location: enable\n"
                 "#extension GL_ARB_shading_language_420pack: enable\n"
                 "#extension GL_ARB_gpu_shader5: enable\n"
                 "layout(location=0) in vec3 i_position;\n"
@@ -165,6 +168,7 @@ int32_t main(void) {
             cfg.stage = FX_SHADER_STAGE_FRAGMENT;
             cfg.source =
                 "#version 330 core\n"
+                "#extension GL_ARB_explicit_uniform_location: enable\n"
                 "#extension GL_ARB_shading_language_420pack: enable\n"
                 "#extension GL_ARB_gpu_shader5: enable\n"
                 "in VS_OUT {\n"

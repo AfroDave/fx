@@ -523,8 +523,6 @@ typedef enum fxAttribSemantic {
     FX_ATTRIB_SEMANTIC_TEXCOORD3,
     FX_ATTRIB_SEMANTIC_TEXCOORD4,
     FX_ATTRIB_SEMANTIC_TEXCOORD5,
-    FX_ATTRIB_SEMANTIC_TEXCOORD6,
-    FX_ATTRIB_SEMANTIC_TEXCOORD7,
     FX_ATTRIB_SEMANTIC_COUNT
 } fxAttribSemantic;
 
@@ -613,7 +611,7 @@ FX_API void fx_cmd_bind_samplers(fxCmdBuffer cmd_buffer, fxSampler* samplers, ui
 FX_API void fx_cmd_bind_texture_units(fxCmdBuffer cmd_buffer, fxTexture* textures, uint8_t* units, uint8_t count);
 FX_API void fx_cmd_bind_sampler_units(fxCmdBuffer cmd_buffer, fxSampler* samplers, uint8_t* units, uint8_t count);
 
-FX_API void fx_cmd_buffer_update(fxCmdBuffer cmd_buffer, fxBuffer buffer, void* data, uint32_t size, uint32_t offset);
+FX_API void fx_cmd_buffer_update(fxCmdBuffer cmd_buffer, fxBuffer buffer, void* data, uint16_t size, uint16_t offset);
 FX_API void fx_cmd_buffer_copy(fxCmdBuffer cmd_buffer, fxBuffer src, fxBuffer dst, uint32_t src_offset, uint32_t dst_offset, uint32_t size);
 
 FX_API void fx_cmd_texture_copy(fxCmdBuffer cmd_buffer, fxTexture src, fxTexture dst, fxTextureRegion* region);
@@ -1120,7 +1118,7 @@ void fx_cmd_bind_uniform_buffer(fxCmdBuffer cmd_buffer, fxBuffer uniform_buffer,
     cmd->offset = offset;
 }
 
-void fx_cmd_buffer_update(fxCmdBuffer cmd_buffer, fxBuffer buffer, void* data, uint32_t size, uint32_t offset) {
+void fx_cmd_buffer_update(fxCmdBuffer cmd_buffer, fxBuffer buffer, void* data, uint16_t size, uint16_t offset) {
     fxCmdBufferUpdate* cmd = (fxCmdBufferUpdate*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BUFFER_UPDATE, sizeof(fxCmdBufferUpdate) + size);
     FX_MEMCOPY(cmd + 1, data, size);
     cmd->buffer = buffer;

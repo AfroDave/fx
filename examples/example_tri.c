@@ -32,10 +32,12 @@ int32_t main(void) {
     glfwMakeContextCurrent(w);
     glfwSwapInterval(1);
 
-    fxCfg cfg = {};
-    cfg.log = fn_log;
-    cfg.fn_address = fn_address;
-    fxCtx ctx = fx(&cfg);
+    fxCtx ctx; {
+        fxCfg cfg = {};
+        cfg.log = fn_log;
+        cfg.fn_address = fn_address;
+        ctx = fx(&cfg);
+    }
 
     fxPipeline pipeline; {
         fxShader vertex; {
