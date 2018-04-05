@@ -2,7 +2,6 @@
 
 CC='clang'
 CFLAGS='-std=c99 -O0 -ggdb3 -Wall -Wextra -Wpedantic -Wno-gnu-empty-initializer -Wno-gnu-zero-variadic-macro-arguments -Wno-variadic-macros'
-CFLAGS="${CFLAGS} -I${HOME}/include -L${HOME}/lib"
 
 case ${1} in
     null)
