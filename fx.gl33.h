@@ -539,7 +539,7 @@ static struct {
     uint8_t size;
     uint8_t count;
     GLboolean normalised;
-    GLenum type;
+    GLenum kind;
     GLenum internal_format;
     GLenum format;
 } _FX_GL33_FORMAT[] = {
@@ -665,7 +665,7 @@ static const GLenum _FX_GL33_SHADER_STAGE[] = {
     GL_FRAGMENT_SHADER,
 };
 
-//static const char* _fx_glsl_type_name(GLenum type) {
+//static const char* _fx_backend_glsl_type_name(GLenum type) {
 //    switch(type) {
 //        case GL_INT: return "int";
 //        case GL_INT_VEC2: return "ivec2";
@@ -709,104 +709,117 @@ static const GLenum _FX_GL33_SHADER_STAGE[] = {
 //    }
 //}
 
-struct fxBackendBuffer {
+typedef struct fxGl33Buffer {
+    uintptr_t _;
+
+    fxBufferId id;
     uint32_t name;
     uint32_t target;
     uint32_t usage;
     uint32_t size;
     void* ptr;
-};
+} fxGl33Buffer;
 
-struct fxBackendTexture {
+typedef struct fxGl33Texture {
+    uintptr_t _;
+
+    fxTextureId id;
     uint32_t name;
     uint32_t target;
-    uint32_t flags;
-    uint32_t type;
+    uint32_t kind;
     uint32_t format;
-};
 
-struct fxBackendSampler {
+    fxTextureCfg cfg;
+} fxGl33Texture;
+
+typedef struct fxGl33Sampler {
+    uintptr_t _;
+
+    fxSamplerId id;
     uint32_t name;
     uint32_t flags;
+} fxGl33Sampler;
 
-    void* _;
-};
+typedef struct fxGl33Shader {
+    uintptr_t _;
 
-struct fxBackendShader {
+    fxShaderId id;
     uint32_t name;
+} fxGl33Shader;
 
-    void* _;
-};
-
-typedef struct fxBackendProgram {
+typedef struct fxGl33Program {
     uint32_t name;
     struct {
         uint32_t name;
     } stages[FX_SHADER_STAGE_COUNT];
-} fxBackendProgram;
+} fxGl33Program;
 
-struct fxBackendPass {
+typedef struct fxGl33Attachment {
+    fxGl33Texture* texture;
+} fxGl33Attachment;
+
+typedef struct fxGl33Pass {
+    uintptr_t _;
+
+    fxPassId id;
     uint32_t name;
+    fxGl33Attachment colours[FX_CONFIG_ATTACHMENT_MAX];
+    fxGl33Attachment depth_stencil;
     uint32_t count;
 
-    void* _;
-};
+    fxPassCfg cfg;
+} fxGl33Pass;
 
-struct fxBackendRenderTarget {
-    uint32_t name;
-
-    void* _;
-};
-
-typedef struct fxBackendVertexAttrib {
+typedef struct fxGl33VertexAttrib {
     uint32_t binding: 3;
     uint32_t location: 3;
     uint32_t normalised: 1;
     uint32_t count: 3;
-    uint32_t type: 16;
+    uint32_t kind: 16;
     uint32_t offset: 6;
-} fxBackendVertexAttrib;
+} fxGl33VertexAttrib;
 
-typedef struct fxBackendLayout {
-    fxBackendVertexAttrib attribs[FX_ATTRIB_SEMANTIC_COUNT];
+typedef struct fxGl33Layout {
+    fxGl33VertexAttrib attribs[FX_ATTRIB_SEMANTIC_COUNT];
     uint32_t rate;
     uint32_t stride;
     uint32_t count;
-} fxBackendLayout;
+} fxGl33Layout;
 
-struct fxBackendPipeline {
+typedef struct fxGl33Pipeline {
+    uintptr_t _;
+
+    fxPipelineId id;
     fxPipelineBlendCfg blend;
     fxPipelineRasterCfg raster;
     fxPipelineDepthStencilCfg depth_stencil;
-    fxBackendLayout layouts[FX_CONFIG_VERTEX_BUFFER_BINDING_MAX];
-    fxBackendProgram program;
-};
+    fxGl33Layout layouts[FX_CONFIG_VERTEX_BUFFER_BINDING_MAX];
+    fxGl33Program program;
+} fxGl33Pipeline;
 
 struct fxBackendCtx {
     void* usr;
     void (*log)(void* usr, const char* fmt, ...);
 
     fxPoolAllocator pipeline_allocator;
-    fxPoolAllocator render_target_allocator;
     fxPoolAllocator buffer_allocator;
     fxPoolAllocator shader_allocator;
     fxPoolAllocator texture_allocator;
     fxPoolAllocator sampler_allocator;
     fxPoolAllocator pass_allocator;
 
-    fxBackendPipeline pipelines[FX_CONFIG_PIPELINE_MAX];
-    fxBackendRenderTarget render_targets[FX_CONFIG_RENDER_TARGET_MAX];
-    fxBackendBuffer buffers[FX_CONFIG_BUFFER_MAX];
-    fxBackendShader shaders[FX_CONFIG_SHADER_MAX];
-    fxBackendTexture textures[FX_CONFIG_TEXTURE_MAX];
-    fxBackendSampler samplers[FX_CONFIG_TEXTURE_MAX];
-    fxBackendPass passes[FX_CONFIG_PASS_MAX];
+    fxGl33Pipeline pipelines[FX_CONFIG_PIPELINE_MAX];
+    fxGl33Buffer buffers[FX_CONFIG_BUFFER_MAX];
+    fxGl33Shader shaders[FX_CONFIG_SHADER_MAX];
+    fxGl33Texture textures[FX_CONFIG_TEXTURE_MAX];
+    fxGl33Sampler samplers[FX_CONFIG_TEXTURE_MAX];
+    fxGl33Pass passes[FX_CONFIG_PASS_MAX];
 
-    fxBackendPass default_pass;
+    fxGl33Pass default_pass;
 
     struct {
         uint32_t vertex_array;
-        fxBackendPipeline* pipeline;
+        fxGl33Pipeline* pipeline;
         struct {
             uint32_t vertex[FX_CONFIG_VERTEX_BUFFER_BINDING_MAX];
             uint32_t index;
@@ -862,28 +875,30 @@ struct fxBackendCtx {
 #define FX_GL(ctx, fn) (ctx)->fn; _FX_GL33_LINE = __LINE__
 
 static void _fx_backend_destroy(fxBackendCtx* ctx) {
+    FX_ASSERT(ctx != NULL);
     FX_GL(ctx, glDeleteVertexArrays(1, &ctx->cache.vertex_array));
     FX_GL(ctx, glBindVertexArray(0));
 }
 
-static fxBackendProgram _fx_backend_program(fxBackendCtx* ctx, fxPipelineShaderCfg* cfg) {
-    FX_ASSERT(cfg->vertex != NULL);
-    FX_ASSERT(cfg->fragment != NULL);
-    FX_ASSERT(cfg->tessellation_control == NULL);
-    FX_ASSERT(cfg->tessellation_evaluation == NULL);
-    fxBackendProgram res = {};
+static fxGl33Program _fx_backend_program(fxBackendCtx* ctx, fxPipelineShaderCfg* cfg) {
+    FX_ASSERT(ctx != NULL);
+    FX_ASSERT(cfg->vertex != FX_ID_INVALID);
+    FX_ASSERT(cfg->fragment != FX_ID_INVALID);
+    FX_ASSERT(cfg->tessellation_control == FX_ID_INVALID);
+    FX_ASSERT(cfg->tessellation_evaluation == FX_ID_INVALID);
+    fxGl33Program res = {};
 
     res.name = FX_GL(ctx, glCreateProgram());
 
-    res.stages[FX_SHADER_STAGE_VERTEX].name = cfg->vertex->name;
+    res.stages[FX_SHADER_STAGE_VERTEX].name = FX_PTR_FROM_ID(ctx->shaders, cfg->vertex)->name;
     FX_GL(ctx, glAttachShader(res.name, res.stages[FX_SHADER_STAGE_VERTEX].name));
 
     if(cfg->geometry) {
-        res.stages[FX_SHADER_STAGE_GEOMETRY].name = cfg->geometry->name;
+        res.stages[FX_SHADER_STAGE_GEOMETRY].name = FX_PTR_FROM_ID(ctx->shaders, cfg->geometry)->name;
         FX_GL(ctx, glAttachShader(res.name, res.stages[FX_SHADER_STAGE_GEOMETRY].name));
     }
 
-    res.stages[FX_SHADER_STAGE_FRAGMENT].name = cfg->fragment->name;
+    res.stages[FX_SHADER_STAGE_FRAGMENT].name = FX_PTR_FROM_ID(ctx->shaders, cfg->fragment)->name;
     FX_GL(ctx, glAttachShader(res.name, res.stages[FX_SHADER_STAGE_FRAGMENT].name));
 
     FX_GL(ctx, glLinkProgram(res.name));
@@ -901,16 +916,20 @@ static fxBackendProgram _fx_backend_program(fxBackendCtx* ctx, fxPipelineShaderC
     return res;
 }
 
-static fxBackendPipeline* _fx_backend_pipeline(fxBackendCtx* ctx, fxPipelineCfg* cfg) {
-    fxBackendPipeline* res = (fxBackendPipeline*) fx_pool_alloc(&ctx->pipeline_allocator);
-    FX_ASSERT(res != NULL);
-    res->program = _fx_backend_program(ctx, &cfg->shader);
-    FX_MEMCOPY(&res->blend, &cfg->blend, sizeof(fxPipelineBlendCfg));
-    FX_MEMCOPY(&res->raster, &cfg->raster, sizeof(fxPipelineRasterCfg));
-    FX_MEMCOPY(&res->depth_stencil, &cfg->depth_stencil, sizeof(fxPipelineDepthStencilCfg));
+static fxPipelineId _fx_backend_pipeline(fxBackendCtx* ctx, fxPipelineCfg* cfg) {
+    FX_ASSERT(ctx != NULL);
+    fxGl33Pipeline* pipeline = (fxGl33Pipeline*) _fx_pool_allocator_alloc(&ctx->pipeline_allocator);
+    FX_ASSERT(pipeline != NULL);
+
+    fxPipelineId id = FX_INDEX_FROM_PTR(pipeline, ctx->pipelines);
+    pipeline->id = id;
+    pipeline->program = _fx_backend_program(ctx, &cfg->shader);
+    FX_MEMCOPY(&pipeline->blend, &cfg->blend, sizeof(fxPipelineBlendCfg));
+    FX_MEMCOPY(&pipeline->raster, &cfg->raster, sizeof(fxPipelineRasterCfg));
+    FX_MEMCOPY(&pipeline->depth_stencil, &cfg->depth_stencil, sizeof(fxPipelineDepthStencilCfg));
     for(uint32_t i = 0; i < FX_CONFIG_VERTEX_BUFFER_BINDING_MAX; i++) {
         fxPipelineLayoutCfg* layout = &cfg->layouts[i];
-        fxBackendLayout* backend_layout = &res->layouts[i];
+        fxGl33Layout* backend_layout = &pipeline->layouts[i];
         backend_layout->stride = (uint32_t) layout->stride;
         backend_layout->rate = (uint32_t) layout->rate;
         for(uint32_t j = 0; j < FX_ATTRIB_SEMANTIC_COUNT; j++) {
@@ -925,19 +944,22 @@ static fxBackendPipeline* _fx_backend_pipeline(fxBackendCtx* ctx, fxPipelineCfg*
             backend_layout->attribs[j].location = attrib.location;
             backend_layout->attribs[j].normalised = _FX_GL33_FORMAT[attrib.format].normalised;
             backend_layout->attribs[j].count = _FX_GL33_FORMAT[attrib.format].count;
-            backend_layout->attribs[j].type = _FX_GL33_FORMAT[attrib.format].type;
+            backend_layout->attribs[j].kind = _FX_GL33_FORMAT[attrib.format].kind;
             backend_layout->attribs[j].offset = attrib.offset;
             backend_layout->count++;
         }
     }
-    return res;
+    return FX_INDEX_FROM_PTR(pipeline, ctx->pipelines);
 }
 
-static void _fx_backend_pipeline_destroy(fxBackendCtx* ctx, fxBackendPipeline* pipeline) {
-    fx_pool_free(&ctx->pipeline_allocator, pipeline);
+static void _fx_backend_pipeline_destroy(fxBackendCtx* ctx, fxPipelineId pipeline) {
+    FX_ASSERT(ctx != NULL);
+    fxGl33Pipeline* pipeline_ptr = FX_PTR_FROM_ID(ctx->pipelines, pipeline);
+    _fx_pool_allocator_dealloc(&ctx->pipeline_allocator, pipeline_ptr);
 }
 
-static void _fx_backend_buffer_internal(fxBackendCtx* ctx, uint32_t* buffers, uint32_t count, void* data, uint32_t size, GLenum target, uint32_t usage) {
+static void _fx_backend_buffer_create(fxBackendCtx* ctx, uint32_t* buffers, uint32_t count, void* data, uint32_t size, GLenum target, uint32_t usage) {
+    FX_ASSERT(ctx != NULL);
     FX_GL(ctx, glGenBuffers(count, buffers));
     for(uint32_t i = 0; i < count; i++) {
         FX_GL(ctx, glBindBuffer(target, buffers[i]));
@@ -946,172 +968,232 @@ static void _fx_backend_buffer_internal(fxBackendCtx* ctx, uint32_t* buffers, ui
     FX_GL(ctx, glBindBuffer(target, 0));
 }
 
-static fxBackendBuffer* _fx_backend_buffer(fxBackendCtx* ctx, fxBufferCfg* cfg, void* data, uint32_t size) {
-    fxBackendBuffer* res = (fxBackendBuffer*) fx_pool_alloc(&ctx->buffer_allocator);
-    FX_ASSERT(res != NULL);
+static fxBufferId _fx_backend_buffer(fxBackendCtx* ctx, fxBufferCfg* cfg, void* data, uint32_t size) {
+    FX_ASSERT(ctx != NULL);
+    fxGl33Buffer* buffer = (fxGl33Buffer*) _fx_pool_allocator_alloc(&ctx->buffer_allocator);
+    FX_ASSERT(buffer != NULL);
     FX_ASSERT(size <= cfg->size);
 
-    res->size = cfg->size;
-    res->usage = (cfg->flags & FX_BUFFER_DYNAMIC) ? GL_DYNAMIC_DRAW: GL_STATIC_DRAW;
-    res->target = _FX_GL33_BUFFER_TARGET[cfg->type];
-    _fx_backend_buffer_internal(ctx, &res->name, 1, data, res->size, res->target, res->usage);
-    return res;
+    buffer->size = cfg->size;
+    buffer->usage = (cfg->flags & FX_BUFFER_DYNAMIC) ? GL_DYNAMIC_DRAW: GL_STATIC_DRAW;
+    buffer->target = _FX_GL33_BUFFER_TARGET[cfg->kind];
+    _fx_backend_buffer_create(ctx, &buffer->name, 1, data, buffer->size, buffer->target, buffer->usage);
+    return FX_INDEX_FROM_PTR(buffer, ctx->buffers);
 }
 
-static void _fx_backend_buffer_destroy(fxBackendCtx* ctx, fxBackendBuffer* buffer) {
-    FX_GL(ctx, glDeleteBuffers(1, &buffer->name));
-    fx_pool_free(&ctx->buffer_allocator, buffer);
+static void _fx_backend_buffer_destroy(fxBackendCtx* ctx, fxBufferId buffer) {
+    FX_ASSERT(ctx != NULL);
+    fxGl33Buffer* buffer_ptr = FX_PTR_FROM_ID(ctx->buffers, buffer);
+    FX_GL(ctx, glDeleteBuffers(1, &buffer_ptr->name));
+    _fx_pool_allocator_dealloc(&ctx->buffer_allocator, buffer_ptr);
 }
 
-static void _fx_backend_buffer_update(fxBackendCtx* ctx, fxBackendBuffer* buffer, void* data, uint32_t size, uint32_t offset) {
-    FX_ASSERT(buffer->usage == GL_DYNAMIC_DRAW);
-    FX_ASSERT(offset + size <= buffer->size);
-    FX_GL(ctx, glBindBuffer(buffer->target, buffer->name));
-    FX_GL(ctx, glBufferSubData(buffer->target, offset, size, data));
+static void _fx_backend_buffer_update(fxBackendCtx* ctx, fxBufferId buffer, void* data, uint32_t size, uint32_t offset) {
+    FX_ASSERT(ctx != NULL);
+    fxGl33Buffer* buffer_ptr = FX_PTR_FROM_ID(ctx->buffers, buffer);
+    FX_ASSERT(buffer_ptr->usage == GL_DYNAMIC_DRAW);
+    FX_ASSERT(offset + size <= buffer_ptr->size);
+    FX_GL(ctx, glBindBuffer(buffer_ptr->target, buffer_ptr->name));
+    FX_GL(ctx, glBufferSubData(buffer_ptr->target, offset, size, data));
 }
 
-static fxBackendTexture* _fx_backend_texture(fxBackendCtx* ctx, fxTextureCfg* cfg, void* data, uint32_t size) {
-    fxBackendTexture* res = (fxBackendTexture*) fx_pool_alloc(&ctx->texture_allocator);
-    FX_ASSERT(res != NULL);
+static fxTextureId _fx_backend_texture(fxBackendCtx* ctx, fxTextureCfg* cfg, void** datas, uint32_t* sizes) {
+    FX_ASSERT(ctx != NULL);
+    fxGl33Texture* texture = (fxGl33Texture*) _fx_pool_allocator_alloc(&ctx->texture_allocator);
+    FX_ASSERT(texture != NULL);
     FX_ASSERT((cfg->flags & ~FX_TEXTURE_MULTISAMPLE) == 0);
 
-    res->format = _FX_GL33_FORMAT[cfg->format].format;
-    res->type = _FX_GL33_FORMAT[cfg->format].type;
-    res->target = _FX_GL33_TEXTURE_TARGET[cfg->type];
-    res->flags = cfg->flags;
+    fxTextureId id = FX_INDEX_FROM_PTR(texture, ctx->textures);
+    texture->id = id;
     bool compressed = cfg->format >= FX_FORMAT_BC1 && cfg->format <= FX_FORMAT_ETC2A1;
-    cfg->mipmaps = FX_MAX(1, cfg->mipmaps);
-    FX_GL(ctx, glGenTextures(1, &res->name));
+    uint32_t width = cfg->width;
+    uint32_t height = cfg->height;
+    uint32_t depth = cfg->depth;
+    uint32_t mipmaps = FX_MAX(1, cfg->mipmaps);
+    GLenum internal_format = _FX_GL33_FORMAT[cfg->format].internal_format;
+    texture->format = _FX_GL33_FORMAT[cfg->format].format;
+    texture->kind = _FX_GL33_FORMAT[cfg->format].kind;
+    texture->target = _FX_GL33_TEXTURE_TARGET[cfg->kind];
+
+    FX_MEMCOPY(&texture->cfg, cfg, sizeof(fxTextureCfg));
+
+    FX_GL(ctx, glGenTextures(1, &texture->name));
     FX_GL(ctx, glActiveTexture(GL_TEXTURE0));
-    FX_GL(ctx, glBindTexture(res->target, res->name));
-    FX_GL(ctx, glTexImage2D(res->target, 0, _FX_GL33_FORMAT[cfg->format].internal_format, cfg->width, cfg->height, 0, _FX_GL33_FORMAT[cfg->format].format, _FX_GL33_FORMAT[cfg->format].type, NULL));
-    if(data) {
-        if(compressed) {
-            FX_GL(ctx, glCompressedTexSubImage2D(res->target, 0, 0, 0, cfg->width, cfg->height, res->format, size, data));
+    FX_GL(ctx, glBindTexture(texture->target, texture->name));
+
+    if(texture->target == GL_TEXTURE_2D) {
+        if(cfg->flags & FX_TEXTURE_MULTISAMPLE) {
+            FX_GL(ctx, glTexImage2DMultisample(texture->name, cfg->samples, internal_format, width, height, GL_FALSE));
         } else {
-            FX_GL(ctx, glTexSubImage2D(res->target, 0, 0, 0, cfg->width, cfg->height, _FX_GL33_FORMAT[cfg->format].format, _FX_GL33_FORMAT[cfg->format].type, data));
+            FX_GL(ctx, glTexImage2D(texture->target, 0, internal_format, width, height, 0, texture->format, texture->kind, NULL));
         }
+    } else if(texture->target == GL_TEXTURE_2D_ARRAY) {
+        if(cfg->flags & FX_TEXTURE_MULTISAMPLE) {
+            FX_GL(ctx, glTexImage3DMultisample(texture->name, cfg->samples, internal_format, width, height, depth, GL_FALSE));
+        } else {
+            FX_GL(ctx, glTexImage3D(texture->target, 0, internal_format, width, height, depth, 0, texture->format, texture->kind, NULL));
+        }
+    }
+
+    for(uint32_t mipmap = 0; mipmap < mipmaps; mipmap++) {
+        if(texture->target == GL_TEXTURE_2D) {
+            if(datas[mipmap]) {
+                if(compressed) {
+                    FX_GL(ctx, glCompressedTexSubImage2D(texture->target, mipmap, 0, 0, width, height, texture->format, sizes[mipmap], datas[mipmap]));
+                } else {
+                    FX_GL(ctx, glTexSubImage2D(texture->target, mipmap, 0, 0, width, height, texture->format, texture->kind, datas[mipmap]));
+                }
+            }
+        } else if(texture->target == GL_TEXTURE_2D_ARRAY) {
+            if(datas[mipmap]) {
+                if(compressed) {
+                    FX_GL(ctx, glCompressedTexSubImage3D(texture->target, mipmap, 0, 0, 0, width, height, depth, texture->format, sizes[mipmap], datas[mipmap]));
+                } else {
+                    FX_GL(ctx, glTexSubImage3D(texture->target, mipmap, 0, 0, 0, width, height, depth, texture->format, texture->kind, datas[mipmap]));
+                }
+            }
+        }
+        width >>= 1;
+        height >>= 1;
+        width = FX_MAX(1, width);
+        height = FX_MAX(1, height);
     }
 
     if(cfg->swizzle_r != FX_SWIZZLE_INDENTITY) {
-        FX_GL(ctx, glTexParameteri(res->target, GL_TEXTURE_SWIZZLE_R, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_r]));
+        FX_GL(ctx, glTexParameteri(texture->target, GL_TEXTURE_SWIZZLE_R, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_r]));
     }
     if(cfg->swizzle_g != FX_SWIZZLE_INDENTITY) {
-        FX_GL(ctx, glTexParameteri(res->target, GL_TEXTURE_SWIZZLE_G, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_g]));
+        FX_GL(ctx, glTexParameteri(texture->target, GL_TEXTURE_SWIZZLE_G, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_g]));
     }
     if(cfg->swizzle_b != FX_SWIZZLE_INDENTITY) {
-        FX_GL(ctx, glTexParameteri(res->target, GL_TEXTURE_SWIZZLE_B, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_b]));
+        FX_GL(ctx, glTexParameteri(texture->target, GL_TEXTURE_SWIZZLE_B, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_b]));
     }
     if(cfg->swizzle_a != FX_SWIZZLE_INDENTITY) {
-        FX_GL(ctx, glTexParameteri(res->target, GL_TEXTURE_SWIZZLE_A, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_a]));
+        FX_GL(ctx, glTexParameteri(texture->target, GL_TEXTURE_SWIZZLE_A, _FX_GL33_COMPONENT_SWIZZLE[cfg->swizzle_a]));
     }
-    return res;
+    return FX_INDEX_FROM_PTR(texture, ctx->textures);
 }
 
-static void _fx_backend_texture_destroy(fxBackendCtx* ctx, fxBackendTexture* texture) {
-    FX_GL(ctx, glDeleteTextures(1, &texture->name));
-    fx_pool_free(&ctx->texture_allocator, texture);
+static void _fx_backend_texture_destroy(fxBackendCtx* ctx, fxTextureId texture) {
+    FX_ASSERT(ctx != NULL);
+    fxGl33Texture* texture_ptr = FX_PTR_FROM_ID(ctx->textures, texture);
+    FX_GL(ctx, glDeleteTextures(1, &texture_ptr->name));
+    _fx_pool_allocator_dealloc(&ctx->texture_allocator, texture_ptr);
 }
 
-static void _fx_backend_texture_update(fxBackendCtx* ctx, fxBackendTexture* texture, void* data, fxTextureRegion* region) {
+static void _fx_backend_texture_update(fxBackendCtx* ctx, fxTextureId texture, void* data, fxTextureRegion* region) {
+    FX_ASSERT(ctx != NULL);
+    fxGl33Texture* texture_ptr = FX_PTR_FROM_ID(ctx->textures, texture);
     FX_GL(ctx, glTexSubImage2D(
-        texture->name, 0, region->src_offset.x, region->src_offset.y,
-        region->width, region->height, texture->format, texture->type, data));
+        texture_ptr->name, 0, region->src_offset.x, region->src_offset.y,
+        region->width, region->height, texture_ptr->format, texture_ptr->kind, data));
 }
 
-static fxBackendSampler* _fx_backend_sampler(fxBackendCtx* ctx, fxSamplerCfg* cfg) {
-    fxBackendSampler* res = (fxBackendSampler*) fx_pool_alloc(&ctx->texture_allocator);
-    FX_ASSERT(res != NULL);
+static fxSamplerId _fx_backend_sampler(fxBackendCtx* ctx, fxSamplerCfg* cfg) {
+    FX_ASSERT(ctx != NULL);
+    fxGl33Sampler* sampler = (fxGl33Sampler*) _fx_pool_allocator_alloc(&ctx->sampler_allocator);
+    FX_ASSERT(sampler != NULL);
 
-    res->flags = cfg->flags;
-    FX_GL(ctx, glGenSamplers(1, &res->name));
+    fxSamplerId id = FX_INDEX_FROM_PTR(sampler, ctx->samplers);
+    sampler->id = id;
+    sampler->flags = cfg->flags;
+    FX_GL(ctx, glGenSamplers(1, &sampler->name));
     if(cfg->filter_mipmap != FX_FILTER_MIPMAP_MODE_NONE) {
-        FX_GL(ctx, glSamplerParameteri(res->name, GL_TEXTURE_MIN_FILTER, _FX_GL33_FILTER_TYPE[cfg->filter_min]));
-        FX_GL(ctx, glSamplerParameteri(res->name, GL_TEXTURE_MAG_FILTER, _FX_GL33_FILTER_MIPMAP_TYPE[cfg->filter_mipmap]));
+        FX_GL(ctx, glSamplerParameteri(sampler->name, GL_TEXTURE_MIN_FILTER, _FX_GL33_FILTER_TYPE[cfg->filter_min]));
+        FX_GL(ctx, glSamplerParameteri(sampler->name, GL_TEXTURE_MAG_FILTER, _FX_GL33_FILTER_MIPMAP_TYPE[cfg->filter_mipmap]));
     } else {
-        FX_GL(ctx, glSamplerParameteri(res->name, GL_TEXTURE_MIN_FILTER, _FX_GL33_FILTER_TYPE[cfg->filter_min]));
-        FX_GL(ctx, glSamplerParameteri(res->name, GL_TEXTURE_MAG_FILTER, _FX_GL33_FILTER_TYPE[cfg->filter_mag]));
+        FX_GL(ctx, glSamplerParameteri(sampler->name, GL_TEXTURE_MIN_FILTER, _FX_GL33_FILTER_TYPE[cfg->filter_min]));
+        FX_GL(ctx, glSamplerParameteri(sampler->name, GL_TEXTURE_MAG_FILTER, _FX_GL33_FILTER_TYPE[cfg->filter_mag]));
     }
-    FX_GL(ctx, glSamplerParameteri(res->name, GL_TEXTURE_WRAP_S, _FX_GL33_WRAP_TYPE[cfg->wrap_u]));
-    FX_GL(ctx, glSamplerParameteri(res->name, GL_TEXTURE_WRAP_T, _FX_GL33_WRAP_TYPE[cfg->wrap_v]));
-    FX_GL(ctx, glSamplerParameteri(res->name, GL_TEXTURE_WRAP_R, _FX_GL33_WRAP_TYPE[cfg->wrap_w]));
-    return res;
+    FX_GL(ctx, glSamplerParameteri(sampler->name, GL_TEXTURE_WRAP_S, _FX_GL33_WRAP_TYPE[cfg->wrap_u]));
+    FX_GL(ctx, glSamplerParameteri(sampler->name, GL_TEXTURE_WRAP_T, _FX_GL33_WRAP_TYPE[cfg->wrap_v]));
+    FX_GL(ctx, glSamplerParameteri(sampler->name, GL_TEXTURE_WRAP_R, _FX_GL33_WRAP_TYPE[cfg->wrap_w]));
+    return FX_INDEX_FROM_PTR(sampler, ctx->samplers);
 }
 
-static void _fx_backend_sampler_destroy(fxBackendCtx* ctx, fxBackendSampler* sampler) {
-    FX_GL(ctx, glDeleteSamplers(1, &sampler->name));
-    fx_pool_free(&ctx->sampler_allocator, sampler);
+static void _fx_backend_sampler_destroy(fxBackendCtx* ctx, fxSamplerId sampler) {
+    FX_ASSERT(ctx != NULL);
+    fxGl33Sampler* sampler_ptr = FX_PTR_FROM_ID(ctx->samplers, sampler);
+    FX_GL(ctx, glDeleteSamplers(1, &sampler_ptr->name));
+    _fx_pool_allocator_dealloc(&ctx->sampler_allocator, sampler_ptr);
 }
 
-static fxBackendPass* _fx_backend_pass(fxBackendCtx* ctx, fxPassCfg* cfg) {
+static fxPassId _fx_backend_pass(fxBackendCtx* ctx, fxPassCfg* cfg) {
+    FX_ASSERT(ctx != NULL);
     (void) (cfg);
-    fxBackendPass* res = (fxBackendPass*) fx_pool_alloc(&ctx->pass_allocator);
-    res->count = 0;
-    FX_ASSERT(res != NULL);
-    FX_GL(ctx, glGenFramebuffers(1, &res->name));
-    FX_GL(ctx, glBindFramebuffer(GL_FRAMEBUFFER, res->name));
+    fxGl33Pass* pass = (fxGl33Pass*) _fx_pool_allocator_alloc(&ctx->pass_allocator);
+    FX_ASSERT(pass != NULL);
+
+    fxPassId id = FX_INDEX_FROM_PTR(pass, ctx->passes);
+    pass->id = id;
+    pass->count = 0;
+    FX_GL(ctx, glGenFramebuffers(1, &pass->name));
+    FX_GL(ctx, glBindFramebuffer(GL_FRAMEBUFFER, pass->name));
     for(uint64_t i = 0; i < FX_CONFIG_ATTACHMENT_MAX; i++) {
-        if(!cfg->colours[i].texture) {
-            break;
-        }
-        fxBackendTexture* colour = (fxBackendTexture*) cfg->colours[i].texture;
+        if(cfg->colours[i].texture == FX_ID_INVALID) { break; }
+        fxGl33Texture* colour = &ctx->textures[cfg->colours[i].texture];
         FX_GL(ctx, glFramebufferTexture(GL_FRAMEBUFFER, (GLenum) (GL_COLOR_ATTACHMENT0 + i), colour->name, 0));
-        res->count++;
+        pass->count++;
     }
-    fxBackendTexture* depth_stencil = (fxBackendTexture*) cfg->depth_stencil.texture;
-    if(depth_stencil) {
-        fxBackendTexture* gl_depth_stencil = (fxBackendTexture*) depth_stencil;
+    if(cfg->depth_stencil.texture != FX_ID_INVALID) {
+        fxGl33Texture* depth_stencil = &ctx->textures[cfg->depth_stencil.texture];
         GLenum depth_attachment = GL_DEPTH_STENCIL_ATTACHMENT;
-        FX_GL(ctx, glFramebufferTexture(GL_FRAMEBUFFER, depth_attachment, gl_depth_stencil->name, 0));
+        FX_GL(ctx, glFramebufferTexture(GL_FRAMEBUFFER, depth_attachment, depth_stencil->name, 0));
     }
     if(ctx->glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        FX_GL(ctx, glDeleteFramebuffers(1, &res->name));
-        fx_pool_free(&ctx->pass_allocator, res);
-        res = NULL;
+        FX_GL(ctx, glDeleteFramebuffers(1, &pass->name));
+        _fx_pool_allocator_dealloc(&ctx->pass_allocator, pass);
+        return FX_ID_INVALID;
     }
-    return res;
+    FX_MEMCOPY(&pass->cfg, cfg, sizeof(fxPassCfg));
+    return FX_INDEX_FROM_PTR(pass, ctx->passes);
 }
 
-static void _fx_backend_pass_destroy(fxBackendCtx* ctx, fxBackendPass* pass) {
-    FX_GL(ctx, glDeleteFramebuffers(1, &pass->name));
-    fx_pool_free(&ctx->pass_allocator, pass);
+static void _fx_backend_pass_destroy(fxBackendCtx* ctx, fxPassId pass) {
+    FX_ASSERT(ctx != NULL);
+    fxGl33Pass* pass_ptr = FX_PTR_FROM_ID(ctx->passes, pass);
+    FX_GL(ctx, glDeleteFramebuffers(1, &pass_ptr->name));
+    _fx_pool_allocator_dealloc(&ctx->pass_allocator, pass_ptr);
 }
 
-static fxBackendShader* _fx_backend_shader(fxBackendCtx* ctx, fxShaderCfg* cfg) {
-    fxBackendShader* res = (fxBackendShader*) fx_pool_alloc(&ctx->shader_allocator);
-    FX_ASSERT(res != NULL);
+static fxShaderId _fx_backend_shader(fxBackendCtx* ctx, fxShaderCfg* cfg) {
+    FX_ASSERT(ctx != NULL);
+    fxGl33Shader* shader = (fxGl33Shader*) _fx_pool_allocator_alloc(&ctx->shader_allocator);
+    FX_ASSERT(shader != NULL);
 
+    fxShaderId id = FX_INDEX_FROM_PTR(shader, ctx->shaders);
+    shader->id = id;
 #if 0
     uint32_t magic = *(uint32_t*) cfg->source;
     if(magic == 0x07230203) {
-        res = FX_GL(ctx, glCreateProgram);
+        shader = FX_GL(ctx, glCreateProgram);
         GLuint shader = FX_GL(ctx, glCreateShader, stage);
         FX_GL(ctx, glShaderBinary, 1, &shader, GL_SHADER_BINARY_FORMAT_SPIR_V, cfg->source, cfg->size);
         FX_GL(ctx, glSpecializeShaderARB, shader, !cfg->entry ? "main": cfg->entry, 0, NULL, NULL);
-        res = FX_GL(ctx, glCreateProgram);
-        FX_GL(ctx, glProgramParameteri, res, GL_PROGRAM_SEPARABLE, GL_TRUE);
-        FX_GL(ctx, glAttachShader, res, shader);
-        FX_GL(ctx, glLinkProgram, res);
-        FX_GL(ctx, glDetachShader, res, shader);
+        shader = FX_GL(ctx, glCreateProgram);
+        FX_GL(ctx, glProgramParameteri, shader, GL_PROGRAM_SEPARABLE, GL_TRUE);
+        FX_GL(ctx, glAttachShader, shader, shader);
+        FX_GL(ctx, glLinkProgram, shader);
+        FX_GL(ctx, glDetachShader, shader, shader);
         FX_GL(ctx, glDeleteShader, shader);
     } else {
 #endif
         const char* sources[] = { cfg->source };
-        res->name = FX_GL(ctx, glCreateShader(_FX_GL33_SHADER_STAGE[cfg->stage]));
-        FX_GL(ctx, glShaderSource(res->name, FX_COUNT_OF(sources), sources, NULL));
-        FX_GL(ctx, glCompileShader(res->name));
+        shader->name = FX_GL(ctx, glCreateShader(_FX_GL33_SHADER_STAGE[cfg->stage]));
+        FX_GL(ctx, glShaderSource(shader->name, FX_COUNT_OF(sources), sources, NULL));
+        FX_GL(ctx, glCompileShader(shader->name));
 #if 0
     }
 #endif
 
     GLint log_size = 0;
-    FX_GL(ctx, glGetShaderiv(res->name, GL_INFO_LOG_LENGTH, &log_size));
+    FX_GL(ctx, glGetShaderiv(shader->name, GL_INFO_LOG_LENGTH, &log_size));
     GLint status = 0;
-    FX_GL(ctx, glGetShaderiv(res->name, GL_COMPILE_STATUS, &status));
+    FX_GL(ctx, glGetShaderiv(shader->name, GL_COMPILE_STATUS, &status));
     if(!status) {
         char log[4096];
-        FX_GL(ctx, glGetShaderInfoLog(res->name, sizeof(log), &log_size, log));
-        FX_GL(ctx, glDeleteShader(res->name));
+        FX_GL(ctx, glGetShaderInfoLog(shader->name, sizeof(log), &log_size, log));
+        FX_GL(ctx, glDeleteShader(shader->name));
         log[log_size] = '\0';
         ctx->log(ctx->usr, "%s\n", log);
         FX_ASSERT(!"Failed to compile shader");
@@ -1120,121 +1202,123 @@ static fxBackendShader* _fx_backend_shader(fxBackendCtx* ctx, fxShaderCfg* cfg) 
 
     //GLint input_count = 0, uniform_count = 0, output_count = 0;
     //GLint input_name_max = 0, uniform_name_max = 0, output_name_max = 0;
-    //FX_GL(ctx, glGetProgramInterfaceiv(res->name, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &input_count));
-    //FX_GL(ctx, glGetProgramInterfaceiv(res->name, GL_UNIFORM, GL_ACTIVE_RESOURCES, &uniform_count));
-    //FX_GL(ctx, glGetProgramInterfaceiv(res->name, GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &output_count));
-    //FX_GL(ctx, glGetProgramInterfaceiv(res->name, GL_PROGRAM_INPUT, GL_MAX_NAME_LENGTH, &input_name_max));
-    //FX_GL(ctx, glGetProgramInterfaceiv(res->name, GL_UNIFORM, GL_MAX_NAME_LENGTH, &uniform_name_max));
-    //FX_GL(ctx, glGetProgramInterfaceiv(res->name, GL_PROGRAM_OUTPUT, GL_MAX_NAME_LENGTH, &output_name_max));
+    //FX_GL(ctx, glGetProgramInterfaceiv(shader->name, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &input_count));
+    //FX_GL(ctx, glGetProgramInterfaceiv(shader->name, GL_UNIFORM, GL_ACTIVE_RESOURCES, &uniform_count));
+    //FX_GL(ctx, glGetProgramInterfaceiv(shader->name, GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &output_count));
+    //FX_GL(ctx, glGetProgramInterfaceiv(shader->name, GL_PROGRAM_INPUT, GL_MAX_NAME_LENGTH, &input_name_max));
+    //FX_GL(ctx, glGetProgramInterfaceiv(shader->name, GL_UNIFORM, GL_MAX_NAME_LENGTH, &uniform_name_max));
+    //FX_GL(ctx, glGetProgramInterfaceiv(shader->name, GL_PROGRAM_OUTPUT, GL_MAX_NAME_LENGTH, &output_name_max));
 
     //uint32_t name_max = FX_MAX(input_name_max, FX_MAX(uniform_name_max, output_name_max));
     //char* name = (char*) alloca(name_max + 1);
-    //ctx->log(ctx->usr, "Stage %d\n", res->name);
+    //ctx->log(ctx->usr, "Stage %d\n", shader->name);
     //ctx->log(ctx->usr, "\tInputs (%d):\n", input_count);
     //for(int32_t i = 0; i < input_count; i++) {
     //    GLint count = 0;
-    //    GLenum type = 0;
-    //    FX_GL(ctx, glGetProgramResourceName(res->name, GL_PROGRAM_INPUT, i, name_max + 1, &count, name));
+    //    GLenum kind = 0;
+    //    FX_GL(ctx, glGetProgramResourceName(shader->name, GL_PROGRAM_INPUT, i, name_max + 1, &count, name));
     //    GLenum props[] = {
     //        GL_TYPE,
     //    };
-    //    FX_GL(ctx, glGetProgramResourceiv(res->name, GL_PROGRAM_INPUT, i, FX_COUNT_OF(props), props, 1, NULL, (GLint*) &type));
-    //    ctx->log(ctx->usr, "\t\tlayout(location = %d) in %s %s\n", ctx->glGetAttribLocation(res->name, name), _fx_glsl_type_name(type), name);
+    //    FX_GL(ctx, glGetProgramResourceiv(shader->name, GL_PROGRAM_INPUT, i, FX_COUNT_OF(props), props, 1, NULL, (GLint*) &kind));
+    //    ctx->log(ctx->usr, "\t\tlayout(location = %d) in %s %s\n", ctx->glGetAttribLocation(shader->name, name), _fx_backend_glsl_type_name(kind), name);
     //}
 
     //typedef struct {
-    //    GLenum type;
+    //    GLenum kind;
     //    GLint location;
     //    GLint count;
-    //} fxBackendUniformInfo;
+    //} fxGl33UniformInfo;
 
     //ctx->log(ctx->usr, "\tUniforms (%d):\n", uniform_count);
     //for(int32_t i = 0; i < uniform_count; i++) {
     //    GLint count = 0;
-    //    GLenum type = 0;
-    //    fxBackendUniformInfo info;
+    //    GLenum kind = 0;
+    //    fxGl33UniformInfo info;
     //    GLenum props[] = {
     //        GL_TYPE,
     //        GL_LOCATION,
     //        GL_ARRAY_SIZE,
     //    };
-    //    FX_GL(ctx, glGetProgramResourceName(res->name, GL_UNIFORM, i, name_max + 1, NULL, name));
-    //    FX_GL(ctx, glGetProgramResourceiv(res->name, GL_UNIFORM, i, FX_COUNT_OF(props), props, 1, NULL, (GLint*) &info));
+    //    FX_GL(ctx, glGetProgramResourceName(shader->name, GL_UNIFORM, i, name_max + 1, NULL, name));
+    //    FX_GL(ctx, glGetProgramResourceiv(shader->name, GL_UNIFORM, i, FX_COUNT_OF(props), props, 1, NULL, (GLint*) &info));
     //    count = info.count;
-    //    type = info.type;
+    //    kind = info.kind;
     //    ctx->log(ctx->usr,
-    //        "\t\tlayout(location = %d) uniform %s %s\n", ctx->glGetUniformLocation(res->name, name), _fx_glsl_type_name(type), name);
+    //        "\t\tlayout(location = %d) uniform %s %s\n", ctx->glGetUniformLocation(shader->name, name), _fx_backend_glsl_type_name(kind), name);
     //}
 
     //ctx->log(ctx->usr, "\tOutputs (%d):\n", output_count);
     //for(int32_t i = 0; i < output_count; i++) {
-    //    fxBackendUniformInfo info;
+    //    fxGl33UniformInfo info;
     //    GLenum props[] = {
     //        GL_TYPE,
     //        GL_LOCATION,
     //        GL_ARRAY_SIZE,
     //    };
-    //    FX_GL(ctx, glGetProgramResourceName(res->name, GL_PROGRAM_OUTPUT, i, name_max + 1, NULL, name));
-    //    FX_GL(ctx, glGetProgramResourceiv( res->name, GL_PROGRAM_OUTPUT, i, FX_COUNT_OF(props), props, 1, NULL, (GLint*) &info));
-    //    ctx->log(ctx->usr, "\t\tlayout(location = %d) out %s %s\n", info.location, _fx_glsl_type_name(info.type), name);
+    //    FX_GL(ctx, glGetProgramResourceName(shader->name, GL_PROGRAM_OUTPUT, i, name_max + 1, NULL, name));
+    //    FX_GL(ctx, glGetProgramResourceiv( shader->name, GL_PROGRAM_OUTPUT, i, FX_COUNT_OF(props), props, 1, NULL, (GLint*) &info));
+    //    ctx->log(ctx->usr, "\t\tlayout(location = %d) out %s %s\n", info.location, _fx_backend_glsl_type_name(info.kind), name);
     //}
 
-    return res;
+    return FX_INDEX_FROM_PTR(shader, ctx->shaders);
 }
 
-static void _fx_backend_shader_destroy(fxBackendCtx* ctx, fxBackendShader* shader) {
-    fxBackendShader* gl_shader = (fxBackendShader*) shader;
-    FX_GL(ctx, glDeleteShader(gl_shader->name));
-    fx_pool_free(&ctx->shader_allocator, gl_shader);
+static void _fx_backend_shader_destroy(fxBackendCtx* ctx, fxShaderId shader) {
+    FX_ASSERT(ctx != NULL);
+    fxGl33Shader* shader_ptr = FX_PTR_FROM_ID(ctx->shaders, shader);
+    FX_GL(ctx, glDeleteShader(shader_ptr->name));
+    _fx_pool_allocator_dealloc(&ctx->shader_allocator, shader_ptr);
 }
 
-static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
+static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer* cmd_buffer) {
+    FX_ASSERT(ctx != NULL);
     uint8_t* cmds = cmd_buffer->cmds;
     do {
         fxCmdHeader* header = (fxCmdHeader*) cmds;
         void* raw_cmd = (void*) (header + 1);
-        switch(header->type) {
-            case FX_CMD_TYPE_BEGIN_PASS: {
+        switch(header->kind) {
+            case FX_CMD_KIND_BEGIN_PASS: {
                 fxCmdBeginPass* cmd = (fxCmdBeginPass*) raw_cmd;
-                fxBackendPass* pass = (fxBackendPass*) (cmd->pass ? cmd->pass: &ctx->default_pass);
+                fxGl33Pass* pass = (fxGl33Pass*) (cmd->pass != FX_ID_INVALID ? FX_PTR_FROM_ID(ctx->passes, cmd->pass): &ctx->default_pass);
+                fxGl33Texture* texture = pass->colours[0].texture;
+                int32_t width = texture ? texture->cfg.width: cmd->width;
+                int32_t height = texture ? texture->cfg.height: cmd->height;
                 FX_GL(ctx, glBindFramebuffer(GL_FRAMEBUFFER, pass->name));
+                FX_GL(ctx, glViewport(0.0f, 0.0f, width, height));
+                FX_GL(ctx, glScissor(0.0f, 0.0f, width, height));
                 fxPassOp* ops = &cmd->ops;
                 for(uint32_t i = 0; i < pass->count; i++) {
-                    float colour[4];
-                    colour[0] = ((ops->colours[i].clear >> 24) & 0xFF) * (1.0f / 255.0f);
-                    colour[1] = ((ops->colours[i].clear >> 16) & 0xFF) * (1.0f / 255.0f);
-                    colour[2] = ((ops->colours[i].clear >> 8) & 0xFF) * (1.0f / 255.0f);
-                    colour[3] = ((ops->colours[i].clear >> 0) & 0xFF) * (1.0f / 255.0f);
-                    if(ops->colours[i].type == FX_PASS_OP_TYPE_CLEAR) {
+                    if(ops->colours[i].kind == FX_PASS_OP_KIND_CLEAR) {
+                        float colour[4];
+                        colour[0] = ((ops->colours[i].clear >> 24) & 0xFF) * (1.0f / 255.0f);
+                        colour[1] = ((ops->colours[i].clear >> 16) & 0xFF) * (1.0f / 255.0f);
+                        colour[2] = ((ops->colours[i].clear >> 8) & 0xFF) * (1.0f / 255.0f);
+                        colour[3] = ((ops->colours[i].clear >> 0) & 0xFF) * (1.0f / 255.0f);
                         FX_GL(ctx, glClearBufferfv(GL_COLOR, i, colour));
                     }
                 }
-                if(ops->depth.type == FX_PASS_OP_TYPE_CLEAR) {
+                if(ops->depth.kind == FX_PASS_OP_KIND_CLEAR) {
                     FX_GL(ctx, glClearBufferfv(GL_DEPTH, 0, &ops->depth.clear));
                 }
-                if(ops->stencil.type == FX_PASS_OP_TYPE_CLEAR) {
+                if(ops->stencil.kind == FX_PASS_OP_KIND_CLEAR) {
                     FX_GL(ctx, glClearBufferiv(GL_STENCIL, 0, &ops->stencil.clear));
                 }
             } break;
-            case FX_CMD_TYPE_END_PASS: {
+            case FX_CMD_KIND_END_PASS: {
             } break;
-            case FX_CMD_TYPE_BARRIER: {
-                FX_ASSERT(!"GL33: Memory Barrier Unsupported");
-                fxCmdBarrier* cmd = (fxCmdBarrier*) raw_cmd;
-                (void) cmd;
-                //FX_GL(ctx, glMemoryBarrier(GL_ALL_BARRIER_BITS));
-            } break;
-            case FX_CMD_TYPE_VIEWPORT: {
+            case FX_CMD_KIND_VIEWPORT: {
                 fxCmdViewport* cmd = (fxCmdViewport*) raw_cmd;
                 FX_GL(ctx, glViewport(cmd->x, cmd->y, cmd->width, cmd->height));
             } break;
-            case FX_CMD_TYPE_SCISSOR: {
+            case FX_CMD_KIND_SCISSOR: {
                 fxCmdScissor* cmd = (fxCmdScissor*) raw_cmd;
                 FX_GL(ctx, glScissor(cmd->x, cmd->y, cmd->width, cmd->height));
             } break;
-            case FX_CMD_TYPE_BIND_PIPELINE: {
+            case FX_CMD_KIND_BIND_PIPELINE: {
                 fxCmdBindPipeline* cmd = (fxCmdBindPipeline*) raw_cmd;
-                fxBackendPipeline* pipeline = (fxBackendPipeline*) cmd->pipeline;
+                fxGl33Pipeline* pipeline = FX_PTR_FROM_ID(ctx->pipelines, cmd->pipeline);
+                FX_ASSERT(cmd->pipeline == pipeline->id);
                 if(ctx->cache.pipeline != pipeline) {
                     ctx->cache.pipeline = pipeline;
 
@@ -1449,101 +1533,92 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                     FX_GL(ctx, glUseProgram(pipeline->program.name));
                 }
             } break;
-            case FX_CMD_TYPE_BIND_VERTEX_BUFFERS: {
+            case FX_CMD_KIND_BIND_VERTEX_BUFFERS: {
                 fxCmdBindVertexBuffers* cmd = (fxCmdBindVertexBuffers*) raw_cmd;
                 for(uint32_t i = 0; i < cmd->count; i++) {
-                    uint32_t name = cmd->vertex_buffers[i]->name;
+                    fxGl33Buffer* buffer = FX_PTR_FROM_ID(ctx->buffers, cmd->vertex_buffers[i]);
+                    uint32_t name = buffer->name;
                     if(ctx->cache.binding.vertex[i] != name) {
                         ctx->cache.binding.vertex[i] = name;
-                        fxBackendPipeline* pipeline = ctx->cache.pipeline;
-                        fxBackendLayout* layout = &pipeline->layouts[i];
-                        FX_ASSERT(cmd->vertex_buffers[i]->target == GL_ARRAY_BUFFER);
+                        fxGl33Pipeline* pipeline = ctx->cache.pipeline;
+                        fxGl33Layout* layout = &pipeline->layouts[i];
+                        FX_ASSERT(buffer->target == GL_ARRAY_BUFFER);
                         FX_GL(ctx, glBindBuffer(GL_ARRAY_BUFFER, name));
                         FX_GL(ctx, glVertexAttribDivisor(i, layout->rate));
                         for(uint32_t j = 0; j < layout->count; j++) {
-                            fxBackendVertexAttrib attrib = layout->attribs[j];
-                            if(attrib.type == 0) {
+                            fxGl33VertexAttrib attrib = layout->attribs[j];
+                            if(attrib.kind == 0) {
                                 break;
                             }
                             FX_GL(ctx, glEnableVertexAttribArray(attrib.location));
-                            FX_GL(ctx, glVertexAttribPointer(attrib.location, attrib.count, attrib.type, attrib.normalised, layout->stride, (void*) (uintptr_t) attrib.offset));
+                            FX_GL(ctx, glVertexAttribPointer(attrib.location, attrib.count, attrib.kind, attrib.normalised, layout->stride, (void*) (uintptr_t) attrib.offset));
                         }
                     }
                 }
             } break;
-            case FX_CMD_TYPE_BIND_INDEX_BUFFER: {
+            case FX_CMD_KIND_BIND_INDEX_BUFFER: {
                 fxCmdBindIndexBuffer* cmd = (fxCmdBindIndexBuffer*) raw_cmd;
-                uint32_t name = cmd->index_buffer->name;
+                fxGl33Buffer* buffer = FX_PTR_FROM_ID(ctx->buffers, cmd->index_buffer);
+                uint32_t name = buffer->name;
                 if(ctx->cache.binding.index != name) {
                     ctx->cache.binding.index = name;
-                    ctx->cache.binding.index_type = _FX_GL33_INDEX_TYPE[cmd->index_type];
+                    ctx->cache.binding.index_type = _FX_GL33_INDEX_TYPE[cmd->index_kind];
                     FX_GL(ctx, glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, name));
                 }
             } break;
-            case FX_CMD_TYPE_BIND_UNIFORM_BUFFER: {
+            case FX_CMD_KIND_BIND_UNIFORM_BUFFER: {
                 fxCmdBindUniformBuffer* cmd = (fxCmdBindUniformBuffer*) raw_cmd;
-                uint32_t name = cmd->uniform_buffer->name;
+                fxGl33Buffer* buffer = FX_PTR_FROM_ID(ctx->buffers, cmd->uniform_buffer);
+                uint32_t name = buffer->name;
                 if(ctx->cache.binding.uniform[cmd->index] != name) {
                     ctx->cache.binding.uniform[cmd->index] = name;
                     FX_GL(ctx, glBindBufferRange(GL_UNIFORM_BUFFER, cmd->index, name, cmd->offset, cmd->size));
                 }
             } break;
-            case FX_CMD_TYPE_BUFFER_UPDATE: {
+            case FX_CMD_KIND_BUFFER_UPDATE: {
                 fxCmdBufferUpdate* cmd = (fxCmdBufferUpdate*) raw_cmd;
-                fxBackendBuffer* buffer = (fxBackendBuffer*) cmd->buffer;
-
                 void* data = cmd + 1;
-                _fx_backend_buffer_update(ctx, buffer, data, cmd->size, cmd->offset);
+                _fx_backend_buffer_update(ctx, cmd->buffer, data, cmd->size, cmd->offset);
             } break;
-            case FX_CMD_TYPE_BUFFER_COPY: {
+            case FX_CMD_KIND_BUFFER_COPY: {
                 fxCmdBufferCopy* cmd = (fxCmdBufferCopy*) raw_cmd;
-                fxBackendBuffer* src = (fxBackendBuffer*) cmd->src;
-                fxBackendBuffer* dst = (fxBackendBuffer*) cmd->dst;
+                fxGl33Buffer* src = FX_PTR_FROM_ID(ctx->buffers, cmd->src);
+                fxGl33Buffer* dst = FX_PTR_FROM_ID(ctx->buffers, cmd->dst);
                 FX_GL(ctx, glBindBuffer(GL_COPY_READ_BUFFER, src->name));
                 FX_GL(ctx, glBindBuffer(GL_COPY_WRITE_BUFFER, dst->name));
                 FX_GL(ctx, glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, cmd->src_offset, cmd->dst_offset, cmd->size == FX_ALL ? src->size: cmd->size));
             } break;
-            case FX_CMD_TYPE_BIND_TEXTURES: {
+            case FX_CMD_KIND_BIND_TEXTURES: {
                 fxCmdBindTextures* cmd = (fxCmdBindTextures*) raw_cmd;
                 for(uint32_t i = 0; i < cmd->count; i++) {
-                    uint32_t name = cmd->textures[i]->name;
+                    fxGl33Texture* texture = FX_PTR_FROM_ID(ctx->textures, cmd->textures[i]);
+                    uint32_t name = texture->name;
                     if(ctx->cache.binding.texture[i] != name) {
                         ctx->cache.binding.texture[i] = name;
                         uint8_t unit = (cmd->units[i] == ((uint8_t) -1)) ? i: cmd->units[i];
                         FX_GL(ctx, glActiveTexture(GL_TEXTURE0 + unit));
-                        FX_GL(ctx, glBindTexture(cmd->textures[i]->target, name));
+                        FX_GL(ctx, glBindTexture(texture->target, name));
                     }
                 }
             } break;
-            case FX_CMD_TYPE_BIND_SAMPLERS: {
+            case FX_CMD_KIND_BIND_SAMPLERS: {
                 fxCmdBindSamplers* cmd = (fxCmdBindSamplers*) raw_cmd;
                 for(uint32_t i = 0; i < cmd->count; i++) {
-                    uint32_t name = cmd->samplers[i]->name;
+                    fxGl33Sampler* sampler = FX_PTR_FROM_ID(ctx->samplers, cmd->samplers[i]);
+                    uint32_t name = sampler->name;
                     if(ctx->cache.binding.sampler[i] != name) {
                         ctx->cache.binding.sampler[i] = name;
                         FX_GL(ctx, glBindSampler(cmd->units[i] == ((uint8_t) -1) ? i: cmd->units[i], name));
                     }
                 }
             } break;
-            case FX_CMD_TYPE_TEXTURE_COPY: {
-                FX_ASSERT(!"GL33: Texture Copy Unimplemented");
-                //fxCmdTextureCopy* cmd = (fxCmdTextureCopy*) raw_cmd;
-                //fxBackendTexture* src = (fxBackendTexture*) cmd->src;
-                //fxBackendTexture* dst = (fxBackendTexture*) cmd->dst;
-                //fxTextureRegion region = cmd->region;
-                //FX_GL(ctx, glBindTexture(GL_COPY_READ_BUFFER, src->name));
-                //FX_GL(ctx, glBindTexture(GL_COPY_WRITE_BUFFER, dst->name));
-                //FX_GL(ctx, glCopyImageSubDat)(
-                //    GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, region.src_offset.x, region.src_offset.y, region.src_offset.z, dst->name,
-                //    dst->target, 0, region.dst_offset.x, region.dst_offset.y, region.dst_offset.z,
-                //    FX_MAX(1, region.width), FX_MAX(1, region.height), FX_MAX(1, region.depth));
-
-                //FX_GL(ctx, glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, cmd->src_offset, cmd->dst_offset, cmd->size == FX_ALL ? src->size: cmd->size));
+            case FX_CMD_KIND_TEXTURE_COPY: {
+                FX_ASSERT(!"Texture Copy is Unsupported in GL33");
             } break;
-            case FX_CMD_TYPE_TEXTURE_BLIT: {
+            case FX_CMD_KIND_TEXTURE_BLIT: {
                 fxCmdTextureBlit* cmd = (fxCmdTextureBlit*) raw_cmd;
-                fxBackendTexture* src = (fxBackendTexture*) cmd->src;
-                fxBackendTexture* dst = (fxBackendTexture*) cmd->dst;
+                fxGl33Texture* src = FX_PTR_FROM_ID(ctx->textures, cmd->src);
+                fxGl33Texture* dst = FX_PTR_FROM_ID(ctx->textures, cmd->dst);
                 fxTextureRegion region = cmd->region;
                 FX_GL(ctx, glBindFramebuffer(GL_READ_FRAMEBUFFER, src->name));
                 FX_GL(ctx, glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dst->name));
@@ -1552,21 +1627,21 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
                     region.dst_offset.x, region.dst_offset.y, region.dst_offset.x + region.width, region.dst_offset.y + region.height,
                     GL_COLOR_BUFFER_BIT, GL_NEAREST));
             } break;
-            case FX_CMD_TYPE_DRAW: {
+            case FX_CMD_KIND_DRAW: {
                 fxCmdDraw* cmd = (fxCmdDraw*) raw_cmd;
                 FX_GL(ctx, glDrawArrays(_FX_GL33_PRIMITIVE[cmd->primitive], cmd->first_vertex, cmd->count));
             } break;
-            case FX_CMD_TYPE_DRAW_INDEXED: {
+            case FX_CMD_KIND_DRAW_INDEXED: {
                 fxCmdDraw* cmd = (fxCmdDraw*) raw_cmd;
                 GLenum index_type = ctx->cache.binding.index_type;
                 void* offset = (void*) ((uint64_t) cmd->first_index * (index_type == GL_UNSIGNED_SHORT ? sizeof(uint16_t): sizeof(uint32_t)));
                 FX_GL(ctx, glDrawElementsBaseVertex(_FX_GL33_PRIMITIVE[cmd->primitive], cmd->count, index_type, offset, cmd->first_vertex));
             } break;
-            case FX_CMD_TYPE_DRAW_INSTANCED: {
+            case FX_CMD_KIND_DRAW_INSTANCED: {
                 fxCmdDrawInstanced* cmd = (fxCmdDrawInstanced*) raw_cmd;
                 FX_GL(ctx, glDrawArraysInstanced(_FX_GL33_PRIMITIVE[cmd->primitive], cmd->first_vertex, cmd->count, cmd->instance_count));
             } break;
-            case FX_CMD_TYPE_DRAW_INSTANCED_INDEXED: {
+            case FX_CMD_KIND_DRAW_INSTANCED_INDEXED: {
                 fxCmdDrawInstanced* cmd = (fxCmdDrawInstanced*) raw_cmd;
                 GLenum index_type = ctx->cache.binding.index_type;
                 void* offset = (void*) ((uint64_t) cmd->first_index * (index_type == GL_UNSIGNED_SHORT ? sizeof(uint16_t): sizeof(uint32_t)));
@@ -1579,8 +1654,7 @@ static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer) {
     // FX_GL(ctx, glFinish());
 }
 
-static void _fx_backend_debug_callback(
-    GLenum source, GLenum type, uint32_t id, GLenum severity, int32_t size, const GLchar* msg, const void* usr) {
+static void _fx_backend_debug_callback(GLenum src, GLenum type, uint32_t id, GLenum severity, int32_t size, const GLchar* msg, const void* usr) {
     (void) (id);
     (void) (size);
 
@@ -1589,40 +1663,41 @@ static void _fx_backend_debug_callback(
     static const char* GL_ERROR_TYPE[] = {"Error", "Deprecated", "Undefined", "Portability", "Performance", "Other"};
 
     fxBackendCtx* ctx = (fxBackendCtx*) usr;
+    FX_ASSERT(ctx != NULL);
     ctx->log(ctx->usr,
-        "%d:%s:%s:%s: %s\n", _FX_GL33_LINE, GL_ERROR_SOURCE[source - GL_DEBUG_SOURCE_API],
+        "%d:%s:%s:%s: %s\n", _FX_GL33_LINE, GL_ERROR_SOURCE[src - GL_DEBUG_SOURCE_API],
         GL_ERROR_SEVERITY[severity != GL_DEBUG_SEVERITY_NOTIFICATION ? severity - GL_DEBUG_SEVERITY_HIGH: 3],
         GL_ERROR_TYPE[type - GL_DEBUG_TYPE_ERROR], msg);
 }
 
-fxBackendCtx* fx_backend(fxCfg* cfg, fxBackendApi* api) {
+static void* _fx_backend(fxCfg* cfg, fxSystemInfo* info) {
     fxBackendCtx* res = (fxBackendCtx*) FX_MALLOC(sizeof(fxBackendCtx));
+    FX_ASSERT(res != NULL);
     FX_MEMSET(res, 0, sizeof(fxBackendCtx));
 
     res->usr = cfg->usr;
-    res->log = cfg->log ? cfg->log: _fx_dummy_log;
+    res->log = cfg->log;
 
 #define _FX_GL33_FN_LOAD(type, ret, name, ...) res->name = (ret(*)(__VA_ARGS__)) cfg->fn_address(cfg->usr_fn_address, #name);
     _FX_GL33_FN_MAP(_FX_GL33_FN_LOAD)
 #undef _FX_GL33_FN_LOAD
 
-    res->glGenVertexArrays(1, &res->cache.vertex_array);
-    res->glBindVertexArray(res->cache.vertex_array);
+    FX_GL(res, glGenVertexArrays(1, &res->cache.vertex_array));
+    FX_GL(res, glBindVertexArray(res->cache.vertex_array));
 
     if(res->glDebugMessageCallback) {
-        res->glDebugMessageCallback(_fx_backend_debug_callback, res);
-        res->glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
-        res->glEnable(GL_DEBUG_OUTPUT);
-        res->glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        FX_GL(res, glDebugMessageCallback(_fx_backend_debug_callback, res));
+        FX_GL(res, glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE));
+        FX_GL(res, glEnable(GL_DEBUG_OUTPUT));
+        FX_GL(res, glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS));
     }
 
-    res->buffer_allocator = fx_pool_allocator(res->buffers, FX_CONFIG_BUFFER_MAX, sizeof(fxBackendBuffer));
-    res->pass_allocator = fx_pool_allocator(res->passes, FX_CONFIG_PASS_MAX, sizeof(fxBackendPass));
-    res->pipeline_allocator = fx_pool_allocator(res->pipelines, FX_CONFIG_PIPELINE_MAX, sizeof(fxBackendPipeline));
-    res->render_target_allocator = fx_pool_allocator(res->render_targets, FX_CONFIG_RENDER_TARGET_MAX, sizeof(fxBackendRenderTarget));
-    res->sampler_allocator = fx_pool_allocator(res->samplers, FX_CONFIG_TEXTURE_MAX, sizeof(fxBackendSampler));
-    res->shader_allocator = fx_pool_allocator(res->shaders, FX_CONFIG_SHADER_MAX, sizeof(fxBackendShader));
-    res->texture_allocator = fx_pool_allocator(res->textures, FX_CONFIG_TEXTURE_MAX, sizeof(fxBackendTexture));
+    res->buffer_allocator = _fx_pool_allocator(res->buffers, FX_CONFIG_BUFFER_MAX, sizeof(fxGl33Buffer));
+    res->pass_allocator = _fx_pool_allocator(res->passes, FX_CONFIG_PASS_MAX, sizeof(fxGl33Pass));
+    res->pipeline_allocator = _fx_pool_allocator(res->pipelines, FX_CONFIG_PIPELINE_MAX, sizeof(fxGl33Pipeline));
+    res->sampler_allocator = _fx_pool_allocator(res->samplers, FX_CONFIG_TEXTURE_MAX, sizeof(fxGl33Sampler));
+    res->shader_allocator = _fx_pool_allocator(res->shaders, FX_CONFIG_SHADER_MAX, sizeof(fxGl33Shader));
+    res->texture_allocator = _fx_pool_allocator(res->textures, FX_CONFIG_TEXTURE_MAX, sizeof(fxGl33Texture));
 
     res->default_pass.name = 0;
     res->default_pass.count = 1;
@@ -1652,23 +1727,48 @@ fxBackendCtx* fx_backend(fxCfg* cfg, fxBackendApi* api) {
     res->cache.raster.line_width = 1.0f;
     res->cache.raster.point_size = 1.0f;
 
-    api->destroy = _fx_backend_destroy;
-    api->pipeline = _fx_backend_pipeline;
-    api->pipeline_destroy = _fx_backend_pipeline_destroy;
-    api->buffer = _fx_backend_buffer;
-    api->buffer_destroy = _fx_backend_buffer_destroy;
-    api->buffer_update = _fx_backend_buffer_update;
-    api->texture = _fx_backend_texture;
-    api->texture_destroy = _fx_backend_texture_destroy;
-    api->texture_update = _fx_backend_texture_update;
-    api->sampler = _fx_backend_sampler;
-    api->sampler_destroy = _fx_backend_sampler_destroy;
-    api->shader_destroy = _fx_backend_shader_destroy;
-    api->shader = _fx_backend_shader;
-    api->texture = _fx_backend_texture;
-    api->texture_destroy = _fx_backend_texture_destroy;
-    api->pass = _fx_backend_pass;
-    api->pass_destroy = _fx_backend_pass_destroy;
-    api->submit = _fx_backend_submit;
+    if(info) {
+        info->api = "fx OpenGL 3.3";
+        info->version = (const char*) FX_GL(res, glGetString(GL_VERSION));
+        info->device = (const char*) FX_GL(res, glGetString(GL_RENDERER));
+        info->vendor = (const char*) FX_GL(res, glGetString(GL_VENDOR));
+        info->shading_language = (const char*) FX_GL(res, glGetString(GL_SHADING_LANGUAGE_VERSION));
+        info->texture_copy_support = false;
+        info->geometry_shader_support = true;
+        info->tessellation_shader_support = false;
+        info->compute_shader_support = false;
+        FX_GL(res, glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint*) &info->max_texture_size));
+        FX_GL(res, glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, (GLint*) &info->max_texture_array_count));
+    }
+
     return res;
 }
+
+/*
+ * ---------------------------------- LICENSE ----------------------------------
+ * This is free and unencumbered software released into the public domain.
+ *
+ * Anyone is free to copy, modify, publish, use, compile, sell, or
+ * distribute this software, either in source code form or as a compiled
+ * binary, for any purpose, commercial or non-commercial, and by any
+ * means.
+ *
+ * In jurisdictions that recognize copyright laws, the author or authors
+ * of this software dedicate any and all copyright interest in the
+ * software to the public domain. We make this dedication for the benefit
+ * of the public at large and to the detriment of our heirs and
+ * successors. We intend this dedication to be an overt act of
+ * relinquishment in perpetuity of all present and future rights to this
+ * software under copyright law.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * For more information, please refer to <http://unlicense.org>
+ * =============================================================================
+ */

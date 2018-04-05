@@ -2,8 +2,12 @@
 
 CC='clang'
 CFLAGS='-std=c99 -O0 -ggdb3 -Wall -Wextra -Wpedantic -Wno-gnu-empty-initializer -Wno-gnu-zero-variadic-macro-arguments -Wno-variadic-macros'
+CFLAGS="${CFLAGS} -I${HOME}/include -L${HOME}/lib"
 
 case ${1} in
+    null)
+        IMPL='null'
+        ;;
     gl45)
         IMPL='gl45'
         CFLAGS="${CFLAGS} -DFX_GL45_IMPL"
@@ -22,11 +26,11 @@ esac
 PLATFORM=$(uname -s)
 case "${PLATFORM}" in
     Linux)
-        LIBS='-lGL -lglfw3'
+        LIBS='-lGL -lglfw -lm'
         PLATFORM='linux'
         ;;
     CYGWIN*|MINGW32*|MINGW64*|MSYS*)
-        LIBS='-lkernel32 -lglfw3 -lgdi32'
+        LIBS='-lkernel32 -lglfw -lgdi32'
         PLATFORM='win32'
         ;;
     *)

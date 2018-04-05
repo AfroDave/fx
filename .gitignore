@@ -3,6 +3,7 @@ extern/
 bin/
 asset/
 test/
+tmp/
 *.TMP
 *.exe
 *.dll
@@ -10,3 +11,4 @@ test/
 *.vert
 *.geom
 *.frag
+tags

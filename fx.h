@@ -10,8 +10,8 @@
 #define FX_H
 
 #define FX_VERSION_MAJOR 0
-#define FX_VERSION_MINOR 13
-#define FX_VERSION_PATCH 1
+#define FX_VERSION_MINOR 16
+#define FX_VERSION_PATCH 3
 
 #if defined(__cplusplus)
 extern "C" {
@@ -58,8 +58,7 @@ typedef unsigned __int64 uint64_t;
 #define FX_ALL ((uint32_t) -1)
 
 #define FX_CONFIG_CMD_BUFFER_MAX (8)
-#define FX_CONFIG_CMD_BUFFER_CMD_MAX (1024 * 8)
-#define FX_CONFIG_RENDER_TARGET_MAX (32)
+#define FX_CONFIG_CMD_BUFFER_CMD_MAX (4096 * 8)
 #define FX_CONFIG_TEXTURE_MAX (128)
 #define FX_CONFIG_BUFFER_MAX (128)
 #define FX_CONFIG_VERTEX_BUFFER_BINDING_MAX (8)
@@ -70,15 +69,18 @@ typedef unsigned __int64 uint64_t;
 #define FX_CONFIG_PASS_MAX (16)
 #define FX_CONFIG_ATTACHMENT_MAX (8)
 
-typedef struct fxCtxT* fxCtx;
-typedef struct fxCmdBufferT* fxCmdBuffer;
-typedef struct fxBackendPass* fxPass;
-typedef struct fxBackendRenderTarget* fxRenderTarget;
-typedef struct fxBackendShader* fxShader;
-typedef struct fxBackendPipeline* fxPipeline;
-typedef struct fxBackendBuffer* fxBuffer;
-typedef struct fxBackendTexture* fxTexture;
-typedef struct fxBackendSampler* fxSampler;
+typedef uint32_t fxId;
+
+#define FX_ID_INVALID ((fxId) 0)
+
+typedef struct fxCtx fxCtx;
+typedef struct fxCmdBuffer fxCmdBuffer;
+typedef fxId fxPassId;
+typedef fxId fxShaderId;
+typedef fxId fxPipelineId;
+typedef fxId fxBufferId;
+typedef fxId fxTextureId;
+typedef fxId fxSamplerId;
 
 typedef void (*fxFn)(void);
 
@@ -115,9 +117,6 @@ enum {
     FX_PIPELINE_RASTER_DEPTH_CLAMP = 1 << 0,
     FX_PIPELINE_RASTER_SCISSOR_TEST = 1 << 1,
     FX_PIPELINE_RASTER_ALPHA_TO_COVERAGE = 1 << 2,
-
-    // fx_cmd_barrier flags
-    FX_BARRIER_ALL = 0x7FFFFFFF
 };
 
 typedef enum fxCompareOp {
@@ -180,27 +179,27 @@ typedef enum fxLogicOp {
     FX_LOGIC_OP_SET
 } fxLogicOp;
 
-typedef enum fxPrimitiveType {
-    FX_PRIMITIVE_TYPE_TRIANGLE_LIST,
-    FX_PRIMITIVE_TYPE_TRIANGLE_STRIP,
-    FX_PRIMITIVE_TYPE_TRIANGLE_FAN,
-    FX_PRIMITIVE_TYPE_POINT_LIST,
-    FX_PRIMITIVE_TYPE_LINE_LIST,
-    FX_PRIMITIVE_TYPE_LINE_STRIP,
-    FX_PRIMITIVE_TYPE_PATCH_LIST
-} fxPrimitiveType;
+typedef enum fxPrimitiveKind {
+    FX_PRIMITIVE_KIND_TRIANGLE_LIST,
+    FX_PRIMITIVE_KIND_TRIANGLE_STRIP,
+    FX_PRIMITIVE_KIND_TRIANGLE_FAN,
+    FX_PRIMITIVE_KIND_POINT_LIST,
+    FX_PRIMITIVE_KIND_LINE_LIST,
+    FX_PRIMITIVE_KIND_LINE_STRIP,
+    FX_PRIMITIVE_KIND_PATCH_LIST
+} fxPrimitiveKind;
 
-typedef enum fxIndexType {
-    FX_INDEX_TYPE_U16,
-    FX_INDEX_TYPE_U32,
-    FX_INDEX_TYPE_COUNT
-} fxIndexType;
+typedef enum fxIndexKind {
+    FX_INDEX_KIND_U16,
+    FX_INDEX_KIND_U32,
+    FX_INDEX_KIND_COUNT
+} fxIndexKind;
 
-typedef enum fxBufferType {
-    FX_BUFFER_TYPE_VERTEX,
-    FX_BUFFER_TYPE_INDEX,
-    FX_BUFFER_TYPE_UNIFORM
-} fxBufferType;
+typedef enum fxBufferKind {
+    FX_BUFFER_KIND_VERTEX,
+    FX_BUFFER_KIND_INDEX,
+    FX_BUFFER_KIND_UNIFORM
+} fxBufferKind;
 
 typedef enum fxSwizzle {
     FX_SWIZZLE_INDENTITY,
@@ -355,7 +354,7 @@ typedef enum fxWindingMode {
 
 typedef struct fxBufferCfg {
     const char* label;
-    fxBufferType type;
+    fxBufferKind kind;
     uint32_t size;
     uint32_t flags;
 } fxBufferCfg;
@@ -378,26 +377,26 @@ typedef struct fxShaderCfg {
     uint32_t flags;
 } fxShaderCfg;
 
-typedef enum fxTextureType {
-    FX_TEXTURE_TYPE_2D,
-    FX_TEXTURE_TYPE_ARRAY,
-    FX_TEXTURE_TYPE_COUNT
-} fxTextureType;
+typedef enum fxTextureKind {
+    FX_TEXTURE_KIND_2D,
+    FX_TEXTURE_KIND_ARRAY,
+    FX_TEXTURE_KIND_COUNT
+} fxTextureKind;
 
 typedef struct fxTextureRegion {
     struct {
         uint32_t x, y, z;
     } src_offset, dst_offset;
-    uint32_t width, height, depth;
+    int32_t width, height, depth;
 } fxTextureRegion;
 
 typedef struct fxTextureCfg {
     const char* label;
-    fxTextureType type;
+    fxTextureKind kind;
     fxFormat format;
-    uint32_t width;
-    uint32_t height;
-    uint32_t depth;
+    int32_t width;
+    int32_t height;
+    int32_t depth;
     fxSwizzle swizzle_r;
     fxSwizzle swizzle_g;
     fxSwizzle swizzle_b;
@@ -426,7 +425,7 @@ typedef struct fxSamplerCfg {
 } fxSamplerCfg;
 
 typedef struct fxAttachmentCfg {
-    fxTexture texture;
+    fxTextureId texture;
     uint32_t flags;
 } fxAttachmentCfg;
 
@@ -437,23 +436,23 @@ typedef struct fxPassCfg {
     uint32_t flags;
 } fxPassCfg;
 
-typedef enum fxPassOpType {
-    FX_PASS_OP_TYPE_NONE,
-    FX_PASS_OP_TYPE_CLEAR,
-    FX_PASS_OP_TYPE_COUNT
-} fxPassOpType;
+typedef enum fxPassOpKind {
+    FX_PASS_OP_KIND_NONE,
+    FX_PASS_OP_KIND_CLEAR,
+    FX_PASS_OP_KIND_COUNT
+} fxPassOpKind;
 
 typedef struct fxPassOp {
     struct {
-        fxPassOpType type;
+        fxPassOpKind kind;
         uint32_t clear;
     } colours[FX_CONFIG_ATTACHMENT_MAX];
     struct {
-        fxPassOpType type;
+        fxPassOpKind kind;
         float clear;
     } depth;
     struct {
-        fxPassOpType type;
+        fxPassOpKind kind;
         int32_t clear;
     } stencil;
 } fxPassOp;
@@ -543,11 +542,11 @@ typedef struct fxPipelineLayoutCfg {
 } fxPipelineLayoutCfg;
 
 typedef struct fxPipelineShaderCfg {
-    fxShader vertex;
-    fxShader tessellation_control;
-    fxShader tessellation_evaluation;
-    fxShader geometry;
-    fxShader fragment;
+    fxShaderId vertex;
+    fxShaderId tessellation_control;
+    fxShaderId tessellation_evaluation;
+    fxShaderId geometry;
+    fxShaderId fragment;
     uint32_t flags;
 } fxPipelineShaderCfg;
 
@@ -560,6 +559,20 @@ typedef struct fxPipelineCfg {
     uint32_t flags;
 } fxPipelineCfg;
 
+typedef struct fxSystemInfo {
+    const char* api;
+    const char* version;
+    const char* device;
+    const char* vendor;
+    const char* shading_language;
+    bool texture_copy_support;
+    bool geometry_shader_support;
+    bool tessellation_shader_support;
+    bool compute_shader_support;
+    uint32_t max_texture_size;
+    uint32_t max_texture_array_count;
+} fxSystemInfo;
+
 typedef struct fxCfg {
     void* usr;
     void (*log)(void* usr, const char* fmt, ...);
@@ -567,61 +580,60 @@ typedef struct fxCfg {
     fxFn (*fn_address)(void* usr, const char* name);
 } fxCfg;
 
-FX_API fxCtx fx(fxCfg* cfg);
-FX_API void fx_destroy(fxCtx ctx);
-FX_API void fx_submit(fxCtx ctx, fxCmdBuffer* cmd_buffers, uint32_t count);
+FX_API fxCtx* fx(fxCfg* cfg, fxSystemInfo* info);
+FX_API void fx_destroy(fxCtx* ctx);
+FX_API void fx_submit(fxCtx* ctx, fxCmdBuffer** cmd_buffers, uint32_t count);
 
-FX_API fxPipeline fx_pipeline(fxCtx ctx, fxPipelineCfg* cfg);
-FX_API void fx_pipeline_destroy(fxCtx ctx, fxPipeline pipeline);
+FX_API fxPipelineId fx_pipeline(fxCtx* ctx, fxPipelineCfg* cfg);
+FX_API void fx_pipeline_destroy(fxCtx* ctx, fxPipelineId pipeline);
 
-FX_API fxPass fx_pass(fxCtx ctx, fxPassCfg* cfg);
-FX_API void fx_pass_destroy(fxCtx ctx, fxPass pass);
+FX_API fxPassId fx_pass(fxCtx* ctx, fxPassCfg* cfg);
+FX_API void fx_pass_destroy(fxCtx* ctx, fxPassId pass);
 
-FX_API fxBuffer fx_buffer(fxCtx ctx, fxBufferCfg* cfg, void* data, uint32_t size);
-FX_API void fx_buffer_destroy(fxCtx ctx, fxBuffer buffer);
-FX_API void fx_buffer_update(fxCtx ctx, fxBuffer buffer, void* data, uint32_t size, uint32_t offset);
+FX_API fxBufferId fx_buffer(fxCtx* ctx, fxBufferCfg* cfg, void* data, uint32_t size);
+FX_API void fx_buffer_destroy(fxCtx* ctx, fxBufferId buffer);
+FX_API void fx_buffer_update(fxCtx* ctx, fxBufferId buffer, void* data, uint32_t size, uint32_t offset);
 
-FX_API fxTexture fx_texture(fxCtx ctx, fxTextureCfg* cfg, void* data, uint32_t size);
-FX_API void fx_texture_destroy(fxCtx ctx, fxTexture texture);
-FX_API void fx_texture_update(fxCtx ctx, fxTexture texture, void* data, fxTextureRegion* region);
+FX_API fxTextureId fx_texture(fxCtx* ctx, fxTextureCfg* cfg, void** datas, uint32_t* sizes);
+FX_API void fx_texture_destroy(fxCtx* ctx, fxTextureId texture);
+FX_API void fx_texture_update(fxCtx* ctx, fxTextureId texture, void* data, fxTextureRegion* region);
 
-FX_API fxSampler fx_sampler(fxCtx ctx, fxSamplerCfg* cfg);
-FX_API void fx_sampler_destroy(fxCtx ctx, fxSampler sampler);
+FX_API fxSamplerId fx_sampler(fxCtx* ctx, fxSamplerCfg* cfg);
+FX_API void fx_sampler_destroy(fxCtx* ctx, fxSamplerId sampler);
 
-FX_API fxShader fx_shader(fxCtx ctx, fxShaderCfg* cfg);
-FX_API void fx_shader_destroy(fxCtx ctx, fxShader shader);
+FX_API fxShaderId fx_shader(fxCtx* ctx, fxShaderCfg* cfg);
+FX_API void fx_shader_destroy(fxCtx* ctx, fxShaderId shader);
 
-FX_API fxCmdBuffer fx_cmd_buffer(fxCtx ctx);
-FX_API void fx_cmd_buffer_destroy(fxCtx ctx, fxCmdBuffer cmd_buffer);
-FX_API void fx_cmd_buffer_reset(fxCmdBuffer cmd_buffer);
+FX_API fxCmdBuffer* fx_cmd_buffer(fxCtx* ctx);
+FX_API void fx_cmd_buffer_destroy(fxCtx* ctx, fxCmdBuffer* cmd_buffer);
+FX_API void fx_cmd_buffer_reset(fxCmdBuffer* cmd_buffer);
 
-FX_API void fx_cmd_begin_default_pass(fxCmdBuffer cmd_buffer, uint32_t colour, float depth, int32_t stencil);
-FX_API void fx_cmd_begin_pass(fxCmdBuffer cmd_buffer, fxPass pass, fxPassOp* ops);
-FX_API void fx_cmd_end_pass(fxCmdBuffer cmd_buffer);
+FX_API void fx_cmd_begin_pass_default(fxCmdBuffer* cmd_buffer, fxPassOp* op, uint32_t width, uint32_t height);
+FX_API void fx_cmd_begin_pass_default_clear(fxCmdBuffer* cmd_buffer, uint32_t width, uint32_t height);
+FX_API void fx_cmd_begin_pass(fxCmdBuffer* cmd_buffer, fxPassId pass, fxPassOp* ops);
+FX_API void fx_cmd_end_pass(fxCmdBuffer* cmd_buffer);
 
-FX_API void fx_cmd_viewport(fxCmdBuffer cmd_buffer, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
-FX_API void fx_cmd_scissor(fxCmdBuffer cmd_buffer, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
+FX_API void fx_cmd_viewport(fxCmdBuffer* cmd_buffer, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
+FX_API void fx_cmd_scissor(fxCmdBuffer* cmd_buffer, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 
-FX_API void fx_cmd_bind_pipeline(fxCmdBuffer cmd_buffer, fxPipeline pipeline);
-FX_API void fx_cmd_bind_vertex_buffers(fxCmdBuffer cmd_buffer, fxBuffer* buffers, uint8_t count);
-FX_API void fx_cmd_bind_index_buffer(fxCmdBuffer cmd_buffer, fxBuffer index_buffer, fxIndexType type);
-FX_API void fx_cmd_bind_uniform_buffer(fxCmdBuffer cmd_buffer, fxBuffer uniform_buffer, uint8_t index, uint32_t size, uint32_t offset);
-FX_API void fx_cmd_bind_textures(fxCmdBuffer cmd_buffer, fxTexture* textures, uint8_t count);
-FX_API void fx_cmd_bind_samplers(fxCmdBuffer cmd_buffer, fxSampler* samplers, uint8_t count);
-FX_API void fx_cmd_bind_texture_units(fxCmdBuffer cmd_buffer, fxTexture* textures, uint8_t* units, uint8_t count);
-FX_API void fx_cmd_bind_sampler_units(fxCmdBuffer cmd_buffer, fxSampler* samplers, uint8_t* units, uint8_t count);
+FX_API void fx_cmd_bind_pipeline(fxCmdBuffer* cmd_buffer, fxPipelineId pipeline);
+FX_API void fx_cmd_bind_vertex_buffers(fxCmdBuffer* cmd_buffer, fxBufferId* buffers, uint8_t count);
+FX_API void fx_cmd_bind_index_buffer(fxCmdBuffer* cmd_buffer, fxBufferId index_buffer, fxIndexKind kind);
+FX_API void fx_cmd_bind_uniform_buffer(fxCmdBuffer* cmd_buffer, fxBufferId uniform_buffer, uint8_t index, uint32_t size, uint32_t offset);
+FX_API void fx_cmd_bind_textures(fxCmdBuffer* cmd_buffer, fxTextureId* textures, uint8_t count);
+FX_API void fx_cmd_bind_samplers(fxCmdBuffer* cmd_buffer, fxSamplerId* samplers, uint8_t count);
+FX_API void fx_cmd_bind_texture_units(fxCmdBuffer* cmd_buffer, fxTextureId* textures, uint8_t* units, uint8_t count);
+FX_API void fx_cmd_bind_sampler_units(fxCmdBuffer* cmd_buffer, fxSamplerId* samplers, uint8_t* units, uint8_t count);
 
-FX_API void fx_cmd_buffer_update(fxCmdBuffer cmd_buffer, fxBuffer buffer, void* data, uint16_t size, uint16_t offset);
-FX_API void fx_cmd_buffer_copy(fxCmdBuffer cmd_buffer, fxBuffer src, fxBuffer dst, uint32_t src_offset, uint32_t dst_offset, uint32_t size);
+FX_API void fx_cmd_buffer_update(fxCmdBuffer* cmd_buffer, fxBufferId buffer, void* data, uint16_t size, uint16_t offset);
+FX_API void fx_cmd_buffer_copy(fxCmdBuffer* cmd_buffer, fxBufferId src, fxBufferId dst, uint32_t src_offset, uint32_t dst_offset, uint32_t size);
 
-FX_API void fx_cmd_texture_copy(fxCmdBuffer cmd_buffer, fxTexture src, fxTexture dst, fxTextureRegion* region);
+FX_API void fx_cmd_texture_copy(fxCmdBuffer* cmd_buffer, fxTextureId src, fxTextureId dst, fxTextureRegion* region);
 
-FX_API void fx_cmd_barrier(fxCmdBuffer cmd_buffer, uint32_t flags);
-
-FX_API void fx_cmd_draw(fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_vertex);
-FX_API void fx_cmd_draw_indexed(fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_index, uint32_t first_vertex);
-FX_API void fx_cmd_draw_instanced(fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_vertex, uint32_t instance_count);
-FX_API void fx_cmd_draw_instanced_indexed(fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_index, uint32_t first_vertex, uint32_t instance_count);
+FX_API void fx_cmd_draw(fxCmdBuffer* cmd_buffer, fxPrimitiveKind primitive, uint32_t count, uint32_t first_vertex);
+FX_API void fx_cmd_draw_indexed(fxCmdBuffer* cmd_buffer, fxPrimitiveKind primitive, uint32_t count, uint32_t first_index, uint32_t first_vertex);
+FX_API void fx_cmd_draw_instanced(fxCmdBuffer* cmd_buffer, fxPrimitiveKind primitive, uint32_t count, uint32_t first_vertex, uint32_t instance_count);
+FX_API void fx_cmd_draw_instanced_indexed(fxCmdBuffer* cmd_buffer, fxPrimitiveKind primitive, uint32_t count, uint32_t first_index, uint32_t first_vertex, uint32_t instance_count);
 
 #if defined(__cplusplus)
 }
@@ -631,32 +643,78 @@ FX_API void fx_cmd_draw_instanced_indexed(fxCmdBuffer cmd_buffer, fxPrimitiveTyp
 
 #if defined(FX_IMPL)
 
+// uint32_t index: 12;
+// uint32_t generation: 14;
+// uint32_t kind: 6;
+
+typedef enum fxIdKind {
+    FX_ID_KIND_PIPELINE,
+    FX_ID_KIND_PASS,
+    FX_ID_KIND_BUFFER,
+    FX_ID_KIND_TEXTURE,
+    FX_ID_KIND_SAMPLER,
+    FX_ID_KIND_SHADER,
+    FX_ID_KIND_COUNT
+} fxIdKind;
+
+#define FX_ID_INDEX_SHIFT (0)
+#define FX_ID_INDEX_MASK (0x00000FFF)
+#define FX_ID_GENERATION_SHIFT (12)
+#define FX_ID_GENERATION_MASK (0x03FFF000)
+#define FX_ID_KIND_SHIFT (27)
+#define FX_ID_KIND_MASK (0xFC000000)
+
+#define FX_ID_INDEX(id) (((id) & FX_ID_INDEX_MASK) >> FX_ID_INDEX_SHIFT)
+#define FX_ID_GENERATION(id) (((id) & FX_ID_GENERATION_MASK) >> FX_ID_GENERATION_SHIFT)
+#define FX_ID_KIND(id) (((id) & FX_ID_KIND_MASK) >> FX_ID_KIND_SHIFT)
+
+#define FX_ID(index, generation, kind)                                                                                  \
+    ((((index) << FX_ID_INDEX_SHIFT) & FX_ID_INDEX_MASK) |                                                              \
+     (((generation) << FX_ID_GENERATION_SHIFT) & FX_ID_GENERATION_MASK) |                                               \
+     (((kind) << FX_ID_KIND_SHIFT) & FX_ID_KIND_MASK))
+
+#if !defined(FX_ID_INCREMENT)
+#define FX_ID_INCREMENT(id) FX_ID(FX_ID_INDEX(id), FX_ID_GENERATION(id) + 1, FX_ID_KIND(id))
+#endif
+
+#if !defined(FX_ID_FROM_PTR)
+#define FX_ID_FROM_PTR(ptr, ptrs) FX_ID(FX_INDEX_FROM_PTR(ptr, ptrs), 0, 0);
+#endif
+
+#if !defined(FX_INDEX_FROM_PTR)
+#define FX_INDEX_FROM_PTR(ptr, ptrs) ((uint64_t) (((ptr) - (ptrs) + 1)))
+#endif
+
+#if !defined(FX_PTR_FROM_ID)
+#define FX_PTR_FROM_ID(ptrs, id) (&(ptrs)[FX_ID_INDEX(id) - 1])
+#endif
+
 #if !defined(FX_ASSERT)
 #include <assert.h>
-#define FX_ASSERT(c) assert(c)
+#define FX_ASSERT assert
 #endif
 
 #if !defined(FX_MALLOC)
 #include <stdlib.h>
-#define FX_MALLOC(s) malloc(s)
-#define FX_FREE(p) free(p)
+#define FX_MALLOC malloc
+#define FX_FREE free
 #endif
 
 #if !defined(FX_MEMSET)
 #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
-#define FX_MEMSET(s, c, sz) __builtin_memset((s), (c), (sz))
+#define FX_MEMSET __builtin_memset
 #else
 #include <string.h>
-#define FX_MEMSET(s, c, sz) memset((s), (c), (sz))
+#define FX_MEMSET memset
 #endif
 #endif
 
 #if !defined(FX_MEMCOPY)
 #if defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
-#define FX_MEMCOPY(d, s, sz) __builtin_memcpy((d), (s), (sz))
+#define FX_MEMCOPY __builtin_memcpy
 #else
 #include <string.h>
-#define FX_MEMCOPY(d, s, sz) memcpy((d), (s), (sz))
+#define FX_MEMCOPY memcpy
 #endif
 #endif
 
@@ -664,8 +722,16 @@ FX_API void fx_cmd_draw_instanced_indexed(fxCmdBuffer cmd_buffer, fxPrimitiveTyp
 #define FX_COUNT_OF(a) (sizeof(a) / sizeof((a)[0]))
 #endif
 
+#if !defined(FX_MIN)
+#define FX_MIN(a, b) ((a) < (b) ? (a): (b))
+#endif
+
 #if !defined(FX_MAX)
 #define FX_MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
+
+#if !defined(FX_CLAMP)
+#define FX_CLAMP(a, min, max) (_FX_MAX((min), _FX_MIN((a), (max))))
 #endif
 
 static const char* _FX_SHADER_STAGE_NAME[] = {
@@ -685,19 +751,23 @@ typedef struct fxPoolAllocator {
     void* freelist;
 } fxPoolAllocator;
 
-fxPoolAllocator fx_pool_allocator(void* data, uint64_t item_count, uint64_t item_size) {
+static fxPoolAllocator _fx_pool_allocator(void* data, uint64_t item_count, uint64_t item_size) {
+    FX_ASSERT(data != NULL);
+    FX_ASSERT(item_count > 0);
+    FX_ASSERT(item_size >= sizeof(uintptr_t));
+
     fxPoolAllocator res;
     res.data = data;
 
     void* curr = data;
     for(uint64_t i = 0; i < (item_count - 1); i++) {
-        uint64_t* next = (uint64_t*) curr;
-        *next = ((uint64_t) curr) + item_size;
+        uintptr_t* next = (uintptr_t*) curr;
+        *next = ((uintptr_t) curr) + item_size;
         curr = (void*) (((uint8_t*) curr) + item_size);
     }
 
-    uint64_t* end = (uint64_t*) curr;
-    *end = (uint64_t) NULL;
+    uintptr_t* end = (uintptr_t*) curr;
+    *end = (uintptr_t) NULL;
 
     res.size = item_count * item_size;
     res.used = 0;
@@ -706,7 +776,8 @@ fxPoolAllocator fx_pool_allocator(void* data, uint64_t item_count, uint64_t item
     return res;
 }
 
-void* fx_pool_alloc(fxPoolAllocator* allocator) {
+static void* _fx_pool_allocator_alloc(fxPoolAllocator* allocator) {
+    FX_ASSERT(allocator != NULL);
     void* res = NULL;
     if(allocator->freelist) {
         uint64_t next = *((uint64_t*) allocator->freelist);
@@ -717,203 +788,216 @@ void* fx_pool_alloc(fxPoolAllocator* allocator) {
     return res;
 }
 
-void fx_pool_free(fxPoolAllocator* allocator, void* ptr) {
+static void _fx_pool_allocator_dealloc(fxPoolAllocator* allocator, void* ptr) {
+    FX_ASSERT(allocator != NULL);
+    FX_ASSERT(ptr != NULL);
+    FX_ASSERT(allocator->used > 0);
     *((void**) ptr) = allocator->freelist;
     allocator->freelist = ((void**) ptr);
     allocator->used -= allocator->item_size;
 }
 
-typedef struct fxBackendBuffer fxBackendBuffer;
-typedef struct fxBackendCtx fxBackendCtx;
-typedef struct fxBackendPass fxBackendPass;
-typedef struct fxBackendPipeline fxBackendPipeline;
-typedef struct fxBackendRenderTarget fxBackendRenderTarget;
-typedef struct fxBackendSampler fxBackendSampler;
-typedef struct fxBackendShader fxBackendShader;
-typedef struct fxBackendTexture fxBackendTexture;
-
-typedef struct fxBackendApi {
-    void (*destroy)(fxBackendCtx* ctx);
-
-    fxBackendPipeline* (*pipeline)(fxBackendCtx* ctx, fxPipelineCfg* cfg);
-    void (*pipeline_destroy)(fxBackendCtx* ctx, fxBackendPipeline* pipeline);
-
-    fxBackendBuffer* (*buffer)(fxBackendCtx* ctx, fxBufferCfg* cfg, void* data, uint32_t size);
-    void (*buffer_destroy)(fxBackendCtx* ctx, fxBackendBuffer* buffer);
-    void (*buffer_update)(fxBackendCtx* ctx, fxBackendBuffer* buffer, void* data, uint32_t size, uint32_t offset);
-
-    fxBackendShader* (*shader)(fxBackendCtx* ctx, fxShaderCfg* cfg);
-    void (*shader_destroy)(fxBackendCtx* ctx, fxBackendShader* shader);
-
-    fxBackendTexture* (*texture)(fxBackendCtx* ctx, fxTextureCfg* cfg, void* data, uint32_t size);
-    void (*texture_destroy)(fxBackendCtx* ctx, fxBackendTexture* texture);
-    void (*texture_update)(fxBackendCtx* ctx, fxBackendTexture* texture, void* data, fxTextureRegion* region);
-
-    fxBackendSampler* (*sampler)(fxBackendCtx* ctx, fxSamplerCfg* cfg);
-    void (*sampler_destroy)(fxBackendCtx* ctx, fxBackendSampler* sampler);
-
-    fxBackendPass* (*pass)(fxBackendCtx* ctx, fxPassCfg* cfg);
-    void (*pass_destroy)(fxBackendCtx* ctx, fxBackendPass* pass);
-
-    void (*submit)(fxBackendCtx* ctx, fxCmdBuffer cmd_buffer);
-} fxBackendApi;
-
-fxBackendCtx* fx_backend(fxCfg* cfg, fxBackendApi* api);
-
 typedef enum fxCmdBufferState {
+    FX_CMD_BUFFER_STATE_INVALID,
     FX_CMD_BUFFER_STATE_INACTIVE,
     FX_CMD_BUFFER_STATE_ACTIVE,
     FX_CMD_BUFFER_STATE_PENDING,
     FX_CMD_BUFFER_STATE_COUNT
 } fxCmdBufferState;
 
-struct fxCmdBufferT {
+struct fxCmdBuffer {
     fxCmdBufferState state;
     uint32_t used;
     uint8_t cmds[FX_CONFIG_CMD_BUFFER_CMD_MAX];
 };
 
-struct fxCtxT {
+typedef struct fxIdPtr {
+    fxId id;
+    void* ptr;
+} fxIdPtr;
+
+typedef struct fxBackendCtx fxBackendCtx;
+
+static void* _fx_backend(fxCfg* cfg, fxSystemInfo* info);
+static void _fx_backend_destroy(fxBackendCtx* ctx);
+static fxPipelineId _fx_backend_pipeline(fxBackendCtx* ctx, fxPipelineCfg* cfg);
+static void _fx_backend_pipeline_destroy(fxBackendCtx* ctx, fxPipelineId pipeline);
+static fxBufferId _fx_backend_buffer(fxBackendCtx* ctx, fxBufferCfg* cfg, void* data, uint32_t size);
+static void _fx_backend_buffer_destroy(fxBackendCtx* ctx, fxBufferId buffer);
+static void _fx_backend_buffer_update(fxBackendCtx* ctx, fxBufferId buffer, void* data, uint32_t size, uint32_t offset);
+static fxShaderId _fx_backend_shader(fxBackendCtx* ctx, fxShaderCfg* cfg);
+static void _fx_backend_shader_destroy(fxBackendCtx* ctx, fxShaderId shader);
+static fxTextureId _fx_backend_texture(fxBackendCtx* ctx, fxTextureCfg* cfg, void** datas, uint32_t* sizes);
+static void _fx_backend_texture_destroy(fxBackendCtx* ctx, fxTextureId texture);
+static void _fx_backend_texture_update(fxBackendCtx* ctx, fxTextureId texture, void* data, fxTextureRegion* region);
+static fxSamplerId _fx_backend_sampler(fxBackendCtx* ctx, fxSamplerCfg* cfg);
+static void _fx_backend_sampler_destroy(fxBackendCtx* ctx, fxSamplerId sampler);
+static fxPassId _fx_backend_pass(fxBackendCtx* ctx, fxPassCfg* cfg);
+static void _fx_backend_pass_destroy(fxBackendCtx* ctx, fxPassId pass);
+static void _fx_backend_submit(fxBackendCtx* ctx, fxCmdBuffer* cmd_buffer);
+
+struct fxCtx {
     void* usr;
     void (*log)(void* usr, const char* fmt, ...);
 
-    struct fxCmdBufferT cmd_buffers[FX_CONFIG_CMD_BUFFER_MAX];
+    fxCmdBuffer cmd_buffers[FX_CONFIG_CMD_BUFFER_MAX];
     fxPoolAllocator cmd_buffer_allocator;
 
+    fxIdPtr ids[FX_CONFIG_TEXTURE_MAX + FX_CONFIG_BUFFER_MAX + + FX_CONFIG_SHADER_MAX + FX_CONFIG_PIPELINE_MAX + FX_CONFIG_PASS_MAX];
+    fxPoolAllocator id_allocator;
+
     fxBackendCtx* backend;
-    fxBackendApi api;
 };
 
-static void _fx_dummy_log(void* usr, const char* fmt, ...) {
+//static fxId _fx_id_alloc(fxCtx ctx, uint32_t kind, void* ptr) {
+//    FX_ASSERT(ctx != NULL);
+//    FX_ASSERT(ptr != NULL);
+//    fxIdPtr* id_ptr = _fx_pool_allocator_alloc(&ctx->id_allocator);
+//    uint32_t index = FX_INDEX_FROM_PTR(id_ptr, ctx->ids);
+//    uint32_t generation = FX_ID_GENERATION(id_ptr->id) + 1;
+//    fxId id = FX_ID(index, generation, kind);
+//    id_ptr->id = id;
+//    id_ptr->ptr = ptr;
+//    return id;
+//}
+//
+//static void _fx_id_dealloc(fxCtx ctx, fxId id) {
+//    FX_ASSERT(ctx != NULL);
+//    FX_ASSERT(id != FX_ID_INVALID);
+//    fxIdPtr* id_ptr = &ctx->ids[FX_ID_INDEX(id)];
+//    FX_ASSERT(FX_ID_INDEX(id_ptr->id) == FX_ID_INDEX(id));
+//    FX_ASSERT(FX_ID_GENERATION(id_ptr->id) == FX_ID_GENERATION(id));
+//    FX_ASSERT(FX_ID_KIND(id_ptr->id) == FX_ID_KIND(id));
+//    _fx_pool_allocator_dealloc(&ctx->id_allocator, id_ptr);
+//}
+
+static void _fx_null_log(void* usr, const char* fmt, ...) {
     (void) usr;
     (void) fmt;
 }
 
-fxCtx fx(fxCfg* cfg) {
-    struct fxCtxT* res = (struct fxCtxT*) FX_MALLOC(sizeof(struct fxCtxT));
-    FX_MEMSET(res, 0, sizeof(struct fxCtxT));
+fxCtx* fx(fxCfg* cfg, fxSystemInfo* info) {
+    fxCtx* res = (fxCtx*) FX_MALLOC(sizeof(fxCtx));
+    FX_MEMSET(res, 0, sizeof(fxCtx));
+    cfg->log = cfg->log ? cfg->log: _fx_null_log;
     res->usr = cfg->usr;
-    res->log = cfg->log ? cfg->log: _fx_dummy_log;
-    res->cmd_buffer_allocator = fx_pool_allocator(res->cmd_buffers, FX_CONFIG_CMD_BUFFER_MAX, sizeof(struct fxCmdBufferT));
-    res->backend = fx_backend(cfg, &res->api);
+    res->log = cfg->log;
+    res->cmd_buffer_allocator = _fx_pool_allocator(res->cmd_buffers, FX_COUNT_OF(res->cmd_buffers), sizeof(fxCmdBuffer));
+    res->id_allocator = _fx_pool_allocator(res->ids, FX_COUNT_OF(res->ids), sizeof(fxIdPtr));
+    res->backend = _fx_backend(cfg, info);
     return res;
 }
 
-void fx_destroy(fxCtx ctx) {
-    ctx->api.destroy(ctx->backend);
-    FX_MEMSET(ctx, 0, sizeof(struct fxCtxT));
+void fx_destroy(fxCtx* ctx) {
+    _fx_backend_destroy(ctx->backend);
+    FX_MEMSET(ctx, 0, sizeof(fxCtx));
 }
 
-void fx_submit(fxCtx ctx, fxCmdBuffer* cmd_buffers, uint32_t count) {
+void fx_submit(fxCtx* ctx, fxCmdBuffer** cmd_buffers, uint32_t count) {
     for(uint32_t i = 0; i < count; i++) {
         FX_ASSERT(cmd_buffers[i]->state == FX_CMD_BUFFER_STATE_INACTIVE);
         cmd_buffers[i]->state = FX_CMD_BUFFER_STATE_PENDING;
-        ctx->api.submit(ctx->backend, cmd_buffers[i]);
+        _fx_backend_submit(ctx->backend, cmd_buffers[i]);
         cmd_buffers[i]->state = FX_CMD_BUFFER_STATE_INACTIVE;
     }
 }
 
-fxPipeline fx_pipeline(fxCtx ctx, fxPipelineCfg* cfg) {
-    return (fxPipeline) ctx->api.pipeline(ctx->backend, cfg);
+fxPipelineId fx_pipeline(fxCtx* ctx, fxPipelineCfg* cfg) {
+    return _fx_backend_pipeline(ctx->backend, cfg);
 }
 
-void fx_pipeline_destroy(fxCtx ctx, fxPipeline pipeline) {
-    ctx->api.pipeline_destroy(ctx->backend, pipeline);
+void fx_pipeline_destroy(fxCtx* ctx, fxPipelineId pipeline) {
+    _fx_backend_pipeline_destroy(ctx->backend, pipeline);
 }
 
-fxPass fx_pass(fxCtx ctx, fxPassCfg* cfg) {
-    return (fxPass) ctx->api.pass(ctx->backend, cfg);
+fxPassId fx_pass(fxCtx* ctx, fxPassCfg* cfg) {
+    return _fx_backend_pass(ctx->backend, cfg);
 }
 
-void fx_pass_destroy(fxCtx ctx, fxPass pass) {
-    ctx->api.pass_destroy(ctx->backend, pass);
+void fx_pass_destroy(fxCtx* ctx, fxPassId pass) {
+    _fx_backend_pass_destroy(ctx->backend, pass);
 }
 
-fxBuffer fx_buffer(fxCtx ctx, fxBufferCfg* cfg, void* data, uint32_t size) {
-    return (fxBuffer) ctx->api.buffer(ctx->backend, cfg, data, size);
+fxBufferId fx_buffer(fxCtx* ctx, fxBufferCfg* cfg, void* data, uint32_t size) {
+    return _fx_backend_buffer(ctx->backend, cfg, data, size);
 }
 
-void fx_buffer_destroy(fxCtx ctx, fxBuffer buffer) {
-    ctx->api.buffer_destroy(ctx->backend, buffer);
+void fx_buffer_destroy(fxCtx* ctx, fxBufferId buffer) {
+    _fx_backend_buffer_destroy(ctx->backend, buffer);
 }
 
-void fx_buffer_update(fxCtx ctx, fxBuffer buffer, void* data, uint32_t size, uint32_t offset) {
-    ctx->api.buffer_update(ctx->backend, buffer, data, size, offset);
+void fx_buffer_update(fxCtx* ctx, fxBufferId buffer, void* data, uint32_t size, uint32_t offset) {
+    _fx_backend_buffer_update(ctx->backend, buffer, data, size, offset);
 }
 
-fxTexture fx_texture(fxCtx ctx, fxTextureCfg* cfg, void* data, uint32_t size) {
-    return (fxTexture) ctx->api.texture(ctx->backend, cfg, data, size);
+fxTextureId fx_texture(fxCtx* ctx, fxTextureCfg* cfg, void** datas, uint32_t* sizes) {
+    return _fx_backend_texture(ctx->backend, cfg, datas, sizes);
 }
 
-void fx_texture_destroy(fxCtx ctx, fxTexture texture) {
-    ctx->api.texture_destroy(ctx->backend, texture);
+void fx_texture_destroy(fxCtx* ctx, fxTextureId texture) {
+    _fx_backend_texture_destroy(ctx->backend, texture);
 }
 
-void fx_texture_update(fxCtx ctx, fxTexture texture, void* data, fxTextureRegion* region) {
-    ctx->api.texture_update(ctx->backend, texture, data, region);
+void fx_texture_update(fxCtx* ctx, fxTextureId texture, void* data, fxTextureRegion* region) {
+    _fx_backend_texture_update(ctx->backend, texture, data, region);
 }
 
-fxSampler fx_sampler(fxCtx ctx, fxSamplerCfg* cfg) {
-    return (fxSampler) ctx->api.sampler(ctx->backend, cfg);
+fxSamplerId fx_sampler(fxCtx* ctx, fxSamplerCfg* cfg) {
+    return _fx_backend_sampler(ctx->backend, cfg);
 }
 
-void fx_sampler_destroy(fxCtx ctx, fxSampler sampler) {
-    ctx->api.sampler_destroy(ctx->backend, sampler);
+void fx_sampler_destroy(fxCtx* ctx, fxSamplerId sampler) {
+    _fx_backend_sampler_destroy(ctx->backend, sampler);
 }
 
-fxShader fx_shader(fxCtx ctx, fxShaderCfg* cfg) {
-    return (fxShader) ctx->api.shader(ctx->backend, cfg);
+fxShaderId fx_shader(fxCtx* ctx, fxShaderCfg* cfg) {
+    return _fx_backend_shader(ctx->backend, cfg);
 }
 
-void fx_shader_destroy(fxCtx ctx, fxShader shader) {
-    ctx->api.shader_destroy(ctx->backend, shader);
+void fx_shader_destroy(fxCtx* ctx, fxShaderId shader) {
+    _fx_backend_shader_destroy(ctx->backend, shader);
 }
 
-typedef uint8_t fxCmdType;
+typedef uint8_t fxCmdKind;
 
 enum {
-    FX_CMD_TYPE_BEGIN_PASS,
-    FX_CMD_TYPE_END_PASS,
-    FX_CMD_TYPE_BARRIER,
-    FX_CMD_TYPE_VIEWPORT,
-    FX_CMD_TYPE_SCISSOR,
-    FX_CMD_TYPE_BIND_PIPELINE,
-    FX_CMD_TYPE_BIND_RENDER_TARGET,
-    FX_CMD_TYPE_BIND_VERTEX_BUFFERS,
-    FX_CMD_TYPE_BIND_INDEX_BUFFER,
-    FX_CMD_TYPE_BIND_UNIFORM_BUFFER,
-    FX_CMD_TYPE_BUFFER_UPDATE,
-    FX_CMD_TYPE_BUFFER_COPY,
-    FX_CMD_TYPE_BIND_TEXTURES,
-    FX_CMD_TYPE_BIND_SAMPLERS,
-    FX_CMD_TYPE_TEXTURE_COPY,
-    FX_CMD_TYPE_TEXTURE_BLIT,
-    FX_CMD_TYPE_TEXTURE_UPDATE,
-    FX_CMD_TYPE_UPDATE_UNIFORMS,
-    FX_CMD_TYPE_DRAW,
-    FX_CMD_TYPE_DRAW_INDEXED,
-    FX_CMD_TYPE_DRAW_INSTANCED,
-    FX_CMD_TYPE_DRAW_INSTANCED_INDEXED,
-    FX_CMD_TYPE_COUNT
+    FX_CMD_KIND_BEGIN_PASS,
+    FX_CMD_KIND_END_PASS,
+    FX_CMD_KIND_VIEWPORT,
+    FX_CMD_KIND_SCISSOR,
+    FX_CMD_KIND_BIND_PIPELINE,
+    FX_CMD_KIND_BIND_VERTEX_BUFFERS,
+    FX_CMD_KIND_BIND_INDEX_BUFFER,
+    FX_CMD_KIND_BIND_UNIFORM_BUFFER,
+    FX_CMD_KIND_BUFFER_UPDATE,
+    FX_CMD_KIND_BUFFER_COPY,
+    FX_CMD_KIND_BIND_TEXTURES,
+    FX_CMD_KIND_BIND_SAMPLERS,
+    FX_CMD_KIND_TEXTURE_COPY,
+    FX_CMD_KIND_TEXTURE_BLIT,
+    FX_CMD_KIND_TEXTURE_UPDATE,
+    FX_CMD_KIND_UPDATE_UNIFORMS,
+    FX_CMD_KIND_DRAW,
+    FX_CMD_KIND_DRAW_INDEXED,
+    FX_CMD_KIND_DRAW_INSTANCED,
+    FX_CMD_KIND_DRAW_INSTANCED_INDEXED,
+    FX_CMD_KIND_COUNT
 };
 
 typedef struct fxCmdHeader {
-    fxCmdType type;
+    fxCmdKind kind;
     uint16_t size;
 } fxCmdHeader;
 
 typedef struct fxCmdBeginPass {
-    fxBackendPass* pass;
+    uint32_t width, height;
+    fxPassId pass;
     fxPassOp ops;
 } fxCmdBeginPass;
 
 typedef struct fxCmdEndPass {
-    fxBackendPass* pass;
+    fxPassId pass;
 } fxCmdEndPass;
-
-typedef struct fxCmdBarrier {
-    uint32_t flags;
-} fxCmdBarrier;
 
 typedef struct fxCmdViewport {
     uint16_t x, y, width, height;
@@ -924,38 +1008,34 @@ typedef struct fxCmdScissor {
 } fxCmdScissor;
 
 typedef struct fxCmdBindPipeline {
-    fxBackendPipeline* pipeline;
+    fxPipelineId pipeline;
 } fxCmdBindPipeline;
 
-typedef struct fxCmdBindRenderTarget {
-    fxBackendRenderTarget* render_target;
-} fxCmdBindRenderTarget;
-
 typedef struct fxCmdBindVertexBuffers {
-    fxBackendBuffer* vertex_buffers[FX_CONFIG_VERTEX_BUFFER_BINDING_MAX];
+    fxBufferId vertex_buffers[FX_CONFIG_VERTEX_BUFFER_BINDING_MAX];
     uint8_t count;
 } fxCmdBindVertexBuffers;
 
 typedef struct fxCmdBindIndexBuffer {
-    fxBackendBuffer* index_buffer;
-    fxIndexType index_type;
+    fxBufferId index_buffer;
+    fxIndexKind index_kind;
 } fxCmdBindIndexBuffer;
 
 typedef struct fxCmdBindUniformBuffer {
-    fxBackendBuffer* uniform_buffer;
+    fxBufferId uniform_buffer;
     uint8_t index;
     uint32_t size;
     uint32_t offset;
 } fxCmdBindUniformBuffer;
 
 typedef struct fxCmdBindTextures {
-    fxBackendTexture* textures[FX_CONFIG_TEXTURE_BINDING_MAX];
+    fxTextureId textures[FX_CONFIG_TEXTURE_BINDING_MAX];
     uint8_t units[FX_CONFIG_TEXTURE_BINDING_MAX];
     uint8_t count;
 } fxCmdBindTextures;
 
 typedef struct fxCmdBindSamplers {
-    fxBackendSampler* samplers[FX_CONFIG_TEXTURE_BINDING_MAX];
+    fxSamplerId samplers[FX_CONFIG_TEXTURE_BINDING_MAX];
     uint8_t units[FX_CONFIG_TEXTURE_BINDING_MAX];
     uint8_t count;
 } fxCmdBindSamplers;
@@ -966,168 +1046,193 @@ typedef struct fxCmdUpdateUniforms {
 } fxCmdUpdateUniforms;
 
 typedef struct fxCmdBufferUpdate {
-    fxBackendBuffer* buffer;
+    fxBufferId buffer;
     uint32_t size;
     uint32_t offset;
 } fxCmdBufferUpdate;
 
 typedef struct fxCmdBufferCopy {
-    fxBackendBuffer* src;
-    fxBackendBuffer* dst;
+    fxBufferId src;
+    fxBufferId dst;
     uint32_t src_offset;
     uint32_t dst_offset;
     uint32_t size;
 } fxCmdBufferCopy;
 
 typedef struct fxCmdTextureCopy {
-    fxBackendTexture* src;
-    fxBackendTexture* dst;
+    fxTextureId src;
+    fxTextureId dst;
     fxTextureRegion region;
 } fxCmdTextureCopy;
 
 typedef struct fxCmdTextureBlit {
-    fxBackendTexture* src;
-    fxBackendTexture* dst;
+    fxTextureId src;
+    fxTextureId dst;
     fxTextureRegion region;
 } fxCmdTextureBlit;
 
 typedef struct fxCmdTextureUpdate {
-    fxBackendTexture* texture;
+    fxTextureId texture;
     fxTextureRegion region;
 } fxCmdTextureUpdate;
 
 typedef struct fxCmdDraw {
-    fxPrimitiveType primitive;
+    fxPrimitiveKind primitive;
     uint32_t count;
     uint32_t first_index;
     uint32_t first_vertex;
 } fxCmdDraw;
 
 typedef struct fxCmdDrawInstanced {
-    fxPrimitiveType primitive;
+    fxPrimitiveKind primitive;
     uint32_t count;
     uint32_t first_index;
     uint32_t first_vertex;
     uint32_t instance_count;
 } fxCmdDrawInstanced;
 
-fxCmdBuffer fx_cmd_buffer(fxCtx ctx) {
-    fxCmdBuffer res = (fxCmdBuffer) fx_pool_alloc(&ctx->cmd_buffer_allocator);
+fxCmdBuffer* fx_cmd_buffer(fxCtx* ctx) {
+    fxCmdBuffer* res = _fx_pool_allocator_alloc(&ctx->cmd_buffer_allocator);
+    FX_ASSERT(res != NULL);
     res->state = FX_CMD_BUFFER_STATE_INACTIVE;
     res->used = 0;
     return res;
 }
 
-void fx_cmd_buffer_destroy(fxCtx ctx, fxCmdBuffer cmd_buffer) {
-    fx_pool_free(&ctx->cmd_buffer_allocator, cmd_buffer);
+void fx_cmd_buffer_destroy(fxCtx* ctx, fxCmdBuffer* cmd_buffer) {
+    _fx_pool_allocator_dealloc(&ctx->cmd_buffer_allocator, cmd_buffer);
 }
 
-void fx_cmd_buffer_reset(fxCmdBuffer cmd_buffer) {
+void fx_cmd_buffer_reset(fxCmdBuffer* cmd_buffer) {
     FX_ASSERT(cmd_buffer->state != FX_CMD_BUFFER_STATE_PENDING);
     cmd_buffer->state = FX_CMD_BUFFER_STATE_INACTIVE;
     cmd_buffer->used = 0;
 }
 
-static uint8_t* _fx_cmd(fxCmdBuffer cmd_buffer, fxCmdType type, uint16_t size) {
+static uint8_t* _fx_cmd(fxCmdBuffer* cmd_buffer, fxCmdKind kind, uint16_t size) {
     FX_ASSERT(cmd_buffer->state == FX_CMD_BUFFER_STATE_ACTIVE);
     FX_ASSERT((cmd_buffer->used + sizeof(fxCmdHeader) + size) < FX_CONFIG_CMD_BUFFER_CMD_MAX);
 
     fxCmdHeader* res = (fxCmdHeader*) (cmd_buffer->cmds + cmd_buffer->used);
     FX_MEMSET(res, 0, sizeof(fxCmdHeader) + size);
-    res->type = type;
+    res->kind = kind;
     res->size = size;
     cmd_buffer->used += sizeof(fxCmdHeader) + size;
     return (uint8_t*) (res + 1);
 }
 
-void fx_cmd_begin_default_pass(fxCmdBuffer cmd_buffer, uint32_t colour, float depth, int32_t stencil) {
-    fxPassOp ops;
-    ops.colours[0].type = FX_PASS_OP_TYPE_CLEAR;
-    ops.colours[0].clear = colour;
-    ops.depth.type = FX_PASS_OP_TYPE_CLEAR;
-    ops.depth.clear = depth;
-    ops.stencil.type = FX_PASS_OP_TYPE_CLEAR;
-    ops.stencil.clear = stencil;
-    fx_cmd_begin_pass(cmd_buffer, NULL, &ops);
+void fx_cmd_begin_pass_default(fxCmdBuffer* cmd_buffer, fxPassOp* ops, uint32_t width, uint32_t height) {
+    FX_ASSERT(cmd_buffer->state == FX_CMD_BUFFER_STATE_INACTIVE);
+    FX_ASSERT(ops != NULL);
+    FX_ASSERT(width > 0);
+    FX_ASSERT(height > 0);
+    cmd_buffer->state = FX_CMD_BUFFER_STATE_ACTIVE;
+
+    fxCmdBeginPass* cmd = (fxCmdBeginPass*) _fx_cmd(cmd_buffer, FX_CMD_KIND_BEGIN_PASS, sizeof(fxCmdBeginPass));
+    cmd->pass = FX_ID_INVALID;
+    cmd->width = width;
+    cmd->height = height;
+    FX_MEMCOPY(&cmd->ops, ops, sizeof(fxPassOp));
 }
 
-void fx_cmd_begin_pass(fxCmdBuffer cmd_buffer, fxPass pass, fxPassOp* ops) {
+void fx_cmd_begin_pass_default_clear(fxCmdBuffer* cmd_buffer, uint32_t width, uint32_t height) {
+    fxPassOp ops;
+    ops.colours[0].kind = FX_PASS_OP_KIND_CLEAR;
+    ops.colours[0].clear = 0x000000FF;
+    ops.depth.kind = FX_PASS_OP_KIND_CLEAR;
+    ops.depth.clear = 1.0f;
+    ops.stencil.kind = FX_PASS_OP_KIND_CLEAR;
+    ops.stencil.clear = 0;
+    fx_cmd_begin_pass_default(cmd_buffer, &ops, width, height);
+}
+
+void fx_cmd_begin_pass(fxCmdBuffer* cmd_buffer, fxPassId pass, fxPassOp* ops) {
+    FX_ASSERT(pass != FX_ID_INVALID);
+    FX_ASSERT(pass < FX_CONFIG_BUFFER_MAX);
     FX_ASSERT(cmd_buffer->state == FX_CMD_BUFFER_STATE_INACTIVE);
+    FX_ASSERT(ops != NULL);
     cmd_buffer->state = FX_CMD_BUFFER_STATE_ACTIVE;
-    fxCmdBeginPass* cmd = (fxCmdBeginPass*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BEGIN_PASS, sizeof(fxCmdBeginPass));
+    fxCmdBeginPass* cmd = (fxCmdBeginPass*) _fx_cmd(cmd_buffer, FX_CMD_KIND_BEGIN_PASS, sizeof(fxCmdBeginPass));
     cmd->pass = pass;
     FX_MEMCOPY(&cmd->ops, ops, sizeof(fxPassOp));
 }
 
-void fx_cmd_end_pass(fxCmdBuffer cmd_buffer) {
-    fxCmdEndPass* cmd = (fxCmdEndPass*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_END_PASS, sizeof(fxCmdEndPass));
+void fx_cmd_end_pass(fxCmdBuffer* cmd_buffer) {
+    fxCmdEndPass* cmd = (fxCmdEndPass*) _fx_cmd(cmd_buffer, FX_CMD_KIND_END_PASS, sizeof(fxCmdEndPass));
     (void) cmd;
     cmd_buffer->state = FX_CMD_BUFFER_STATE_INACTIVE;
 }
 
-void fx_cmd_barrier(fxCmdBuffer cmd_buffer, uint32_t flags) {
-    FX_ASSERT(flags == FX_BARRIER_ALL);
-    fxCmdBarrier* cmd = (fxCmdBarrier*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BARRIER, sizeof(fxCmdBarrier));
-    cmd->flags = flags;
-}
-
-void fx_cmd_viewport(fxCmdBuffer cmd_buffer, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
-    fxCmdViewport* cmd = (fxCmdViewport*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_VIEWPORT, sizeof(fxCmdViewport));
+void fx_cmd_viewport(fxCmdBuffer* cmd_buffer, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+    fxCmdViewport* cmd = (fxCmdViewport*) _fx_cmd(cmd_buffer, FX_CMD_KIND_VIEWPORT, sizeof(fxCmdViewport));
     cmd->x = x;
     cmd->y = y;
     cmd->width = width;
     cmd->height = height;
 }
 
-void fx_cmd_scissor(fxCmdBuffer cmd_buffer, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
-    fxCmdScissor* cmd = (fxCmdScissor*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_SCISSOR, sizeof(fxCmdScissor));
+void fx_cmd_scissor(fxCmdBuffer* cmd_buffer, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+    fxCmdScissor* cmd = (fxCmdScissor*) _fx_cmd(cmd_buffer, FX_CMD_KIND_SCISSOR, sizeof(fxCmdScissor));
     cmd->x = x;
     cmd->y = y;
     cmd->width = width;
     cmd->height = height;
 }
 
-void fx_cmd_bind_pipeline(fxCmdBuffer cmd_buffer, fxPipeline pipeline) {
-    fxCmdBindPipeline* cmd = (fxCmdBindPipeline*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_PIPELINE, sizeof(fxCmdBindPipeline));
+void fx_cmd_bind_pipeline(fxCmdBuffer* cmd_buffer, fxPipelineId pipeline) {
+    FX_ASSERT(pipeline != FX_ID_INVALID);
+    FX_ASSERT(FX_ID_INDEX(pipeline) < FX_CONFIG_PIPELINE_MAX);
+    fxCmdBindPipeline* cmd = (fxCmdBindPipeline*) _fx_cmd(cmd_buffer, FX_CMD_KIND_BIND_PIPELINE, sizeof(fxCmdBindPipeline));
     cmd->pipeline = pipeline;
 }
 
-void fx_cmd_bind_render_target(fxCmdBuffer cmd_buffer, fxRenderTarget render_target) {
-    fxCmdBindRenderTarget* cmd = (fxCmdBindRenderTarget*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_RENDER_TARGET, sizeof(fxCmdBindRenderTarget));
-    cmd->render_target = render_target;
-}
-
-void fx_cmd_bind_vertex_buffers(fxCmdBuffer cmd_buffer, fxBuffer* buffers, uint8_t count) {
-    FX_ASSERT(count <= FX_CONFIG_VERTEX_BUFFER_BINDING_MAX);
-    fxCmdBindVertexBuffers* cmd = (fxCmdBindVertexBuffers*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_VERTEX_BUFFERS, sizeof(fxCmdBindVertexBuffers));
-    FX_MEMCOPY(cmd->vertex_buffers, buffers, count * sizeof(fxBuffer));
+void fx_cmd_bind_vertex_buffers(fxCmdBuffer* cmd_buffer, fxBufferId* buffers, uint8_t count) {
+    FX_ASSERT(count < FX_CONFIG_VERTEX_BUFFER_BINDING_MAX);
+#if defined(_DEBUG)
+    for(uint32_t i = 0; i < count; i++) {
+        FX_ASSERT(buffers[i] != FX_ID_INVALID);
+        FX_ASSERT(FX_ID_INDEX(buffers[i]) < FX_CONFIG_BUFFER_MAX);
+    }
+#endif
+    fxCmdBindVertexBuffers* cmd = (fxCmdBindVertexBuffers*) _fx_cmd(cmd_buffer, FX_CMD_KIND_BIND_VERTEX_BUFFERS, sizeof(fxCmdBindVertexBuffers));
+    FX_MEMCOPY(cmd->vertex_buffers, buffers, count * sizeof(fxBufferId));
     cmd->count = count;
 }
 
-void fx_cmd_bind_index_buffer(fxCmdBuffer cmd_buffer, fxBuffer index_buffer, fxIndexType type) {
-    fxCmdBindIndexBuffer* cmd = (fxCmdBindIndexBuffer*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_INDEX_BUFFER, sizeof(fxCmdBindIndexBuffer));
+void fx_cmd_bind_index_buffer(fxCmdBuffer* cmd_buffer, fxBufferId index_buffer, fxIndexKind kind) {
+    FX_ASSERT(index_buffer != FX_ID_INVALID);
+    FX_ASSERT(FX_ID_INDEX(index_buffer) < FX_CONFIG_BUFFER_MAX);
+    fxCmdBindIndexBuffer* cmd = (fxCmdBindIndexBuffer*) _fx_cmd(cmd_buffer, FX_CMD_KIND_BIND_INDEX_BUFFER, sizeof(fxCmdBindIndexBuffer));
     cmd->index_buffer = index_buffer;
-    cmd->index_type = type;
+    cmd->index_kind = kind;
 }
 
-void fx_cmd_bind_uniform_buffer(fxCmdBuffer cmd_buffer, fxBuffer uniform_buffer, uint8_t index, uint32_t size, uint32_t offset) {
-    fxCmdBindUniformBuffer* cmd = (fxCmdBindUniformBuffer*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_UNIFORM_BUFFER, sizeof(fxCmdBindUniformBuffer));
+void fx_cmd_bind_uniform_buffer(fxCmdBuffer* cmd_buffer, fxBufferId uniform_buffer, uint8_t index, uint32_t size, uint32_t offset) {
+    FX_ASSERT(uniform_buffer != FX_ID_INVALID);
+    FX_ASSERT(FX_ID_INDEX(uniform_buffer) < FX_CONFIG_BUFFER_MAX);
+    fxCmdBindUniformBuffer* cmd = (fxCmdBindUniformBuffer*) _fx_cmd(cmd_buffer, FX_CMD_KIND_BIND_UNIFORM_BUFFER, sizeof(fxCmdBindUniformBuffer));
     cmd->uniform_buffer = uniform_buffer;
     cmd->index = index;
     cmd->size = size;
     cmd->offset = offset;
 }
 
-void fx_cmd_buffer_update(fxCmdBuffer cmd_buffer, fxBuffer buffer, void* data, uint16_t size, uint16_t offset) {
-    fxCmdBufferUpdate* cmd = (fxCmdBufferUpdate*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BUFFER_UPDATE, sizeof(fxCmdBufferUpdate) + size);
+void fx_cmd_buffer_update(fxCmdBuffer* cmd_buffer, fxBufferId buffer, void* data, uint16_t size, uint16_t offset) {
+    FX_ASSERT(buffer != FX_ID_INVALID);
+    FX_ASSERT(FX_ID_INDEX(buffer) < FX_CONFIG_BUFFER_MAX);
+    fxCmdBufferUpdate* cmd = (fxCmdBufferUpdate*) _fx_cmd(cmd_buffer, FX_CMD_KIND_BUFFER_UPDATE, sizeof(fxCmdBufferUpdate) + size);
     FX_MEMCOPY(cmd + 1, data, size);
     cmd->buffer = buffer;
     cmd->size = size;
     cmd->offset = offset;
 }
 
-void fx_cmd_buffer_copy(fxCmdBuffer cmd_buffer, fxBuffer src, fxBuffer dst, uint32_t src_offset, uint32_t dst_offset, uint32_t size) {
-    fxCmdBufferCopy* cmd = (fxCmdBufferCopy*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BUFFER_COPY, sizeof(fxCmdBufferCopy));
+void fx_cmd_buffer_copy(fxCmdBuffer* cmd_buffer, fxBufferId src, fxBufferId dst, uint32_t src_offset, uint32_t dst_offset, uint32_t size) {
+    FX_ASSERT(src != FX_ID_INVALID);
+    FX_ASSERT(FX_ID_INDEX(src) < FX_CONFIG_TEXTURE_MAX);
+    FX_ASSERT(dst != FX_ID_INVALID);
+    FX_ASSERT(FX_ID_INDEX(dst) < FX_CONFIG_TEXTURE_MAX);
+    fxCmdBufferCopy* cmd = (fxCmdBufferCopy*) _fx_cmd(cmd_buffer, FX_CMD_KIND_BUFFER_COPY, sizeof(fxCmdBufferCopy));
     cmd->src = src;
     cmd->dst = dst;
     cmd->src_offset = src_offset;
@@ -1135,17 +1240,24 @@ void fx_cmd_buffer_copy(fxCmdBuffer cmd_buffer, fxBuffer src, fxBuffer dst, uint
     cmd->size = size;
 }
 
-void fx_cmd_bind_textures(fxCmdBuffer cmd_buffer, fxTexture* textures, uint8_t count) {
+void fx_cmd_bind_textures(fxCmdBuffer* cmd_buffer, fxTextureId* textures, uint8_t count) {
     fx_cmd_bind_texture_units(cmd_buffer, textures, NULL, count);
 }
 
-void fx_cmd_bind_samplers(fxCmdBuffer cmd_buffer, fxSampler* samplers, uint8_t count) {
+void fx_cmd_bind_samplers(fxCmdBuffer* cmd_buffer, fxSamplerId* samplers, uint8_t count) {
     fx_cmd_bind_sampler_units(cmd_buffer, samplers, NULL, count);
 }
 
-void fx_cmd_bind_texture_units(fxCmdBuffer cmd_buffer, fxTexture* textures, uint8_t* units, uint8_t count) {
-    fxCmdBindTextures* cmd = (fxCmdBindTextures*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_TEXTURES, sizeof(fxCmdBindTextures));
-    FX_MEMCOPY(cmd->textures, textures, count * sizeof(fxTexture));
+void fx_cmd_bind_texture_units(fxCmdBuffer* cmd_buffer, fxTextureId* textures, uint8_t* units, uint8_t count) {
+    FX_ASSERT(count < FX_CONFIG_TEXTURE_BINDING_MAX);
+#if defined(_DEBUG)
+    for(uint32_t i = 0; i < count; i++) {
+        FX_ASSERT(textures[i] != FX_ID_INVALID);
+        FX_ASSERT(FX_ID_INDEX(textures[i]) < FX_CONFIG_TEXTURE_MAX);
+    }
+#endif
+    fxCmdBindTextures* cmd = (fxCmdBindTextures*) _fx_cmd(cmd_buffer, FX_CMD_KIND_BIND_TEXTURES, sizeof(fxCmdBindTextures));
+    FX_MEMCOPY(cmd->textures, textures, count * sizeof(fxTextureId));
     if(units) {
         FX_MEMCOPY(cmd->units, units, count * sizeof(uint8_t));
     } else {
@@ -1154,9 +1266,16 @@ void fx_cmd_bind_texture_units(fxCmdBuffer cmd_buffer, fxTexture* textures, uint
     cmd->count = count;
 }
 
-void fx_cmd_bind_sampler_units(fxCmdBuffer cmd_buffer, fxSampler* samplers, uint8_t* units, uint8_t count) {
-    fxCmdBindSamplers* cmd = (fxCmdBindSamplers*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_BIND_SAMPLERS, sizeof(fxCmdBindSamplers));
-    FX_MEMCOPY(cmd->samplers, samplers, count * sizeof(fxSampler));
+void fx_cmd_bind_sampler_units(fxCmdBuffer* cmd_buffer, fxSamplerId* samplers, uint8_t* units, uint8_t count) {
+    FX_ASSERT(count < FX_CONFIG_TEXTURE_BINDING_MAX);
+#if defined(_DEBUG)
+    for(uint32_t i = 0; i < count; i++) {
+        FX_ASSERT(samplers[i] != FX_ID_INVALID);
+        FX_ASSERT(FX_ID_INDEX(samplers[i]) < FX_CONFIG_TEXTURE_MAX);
+    }
+#endif
+    fxCmdBindSamplers* cmd = (fxCmdBindSamplers*) _fx_cmd(cmd_buffer, FX_CMD_KIND_BIND_SAMPLERS, sizeof(fxCmdBindSamplers));
+    FX_MEMCOPY(cmd->samplers, samplers, count * sizeof(fxSamplerId));
     if(units) {
         FX_MEMCOPY(cmd->units, units, count * sizeof(uint8_t));
     } else {
@@ -1165,54 +1284,64 @@ void fx_cmd_bind_sampler_units(fxCmdBuffer cmd_buffer, fxSampler* samplers, uint
     cmd->count = count;
 }
 
-void fx_cmd_texture_copy(fxCmdBuffer cmd_buffer, fxTexture src, fxTexture dst, fxTextureRegion* region) {
-    fxCmdTextureCopy* cmd = (fxCmdTextureCopy*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_TEXTURE_COPY, sizeof(fxCmdTextureCopy));
+void fx_cmd_texture_copy(fxCmdBuffer* cmd_buffer, fxTextureId src, fxTextureId dst, fxTextureRegion* region) {
+    FX_ASSERT(src != FX_ID_INVALID);
+    FX_ASSERT(FX_ID_INDEX(src) < FX_CONFIG_TEXTURE_MAX);
+    FX_ASSERT(dst != FX_ID_INVALID);
+    FX_ASSERT(FX_ID_INDEX(dst) < FX_CONFIG_TEXTURE_MAX);
+    fxCmdTextureCopy* cmd = (fxCmdTextureCopy*) _fx_cmd(cmd_buffer, FX_CMD_KIND_TEXTURE_COPY, sizeof(fxCmdTextureCopy));
     cmd->src = src;
     cmd->dst = dst;
     cmd->region = *region;
 }
 
-void fx_cmd_texture_blit(fxCmdBuffer cmd_buffer, fxTexture src, fxTexture dst, fxTextureRegion* region) {
-    fxCmdTextureBlit* cmd = (fxCmdTextureBlit*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_TEXTURE_BLIT, sizeof(fxCmdTextureBlit));
+void fx_cmd_texture_blit(fxCmdBuffer* cmd_buffer, fxTextureId src, fxTextureId dst, fxTextureRegion* region) {
+    FX_ASSERT(src != FX_ID_INVALID);
+    FX_ASSERT(FX_ID_INDEX(src) < FX_CONFIG_TEXTURE_MAX);
+    FX_ASSERT(dst != FX_ID_INVALID);
+    FX_ASSERT(FX_ID_INDEX(dst) < FX_CONFIG_TEXTURE_MAX);
+    fxCmdTextureBlit* cmd = (fxCmdTextureBlit*) _fx_cmd(cmd_buffer, FX_CMD_KIND_TEXTURE_BLIT, sizeof(fxCmdTextureBlit));
     cmd->src = src;
     cmd->dst = dst;
     cmd->region = *region;
 }
 
-void fx_cmd_texture_update(fxCmdBuffer cmd_buffer, fxTexture texture, void* data, fxTextureRegion* region) {
+void fx_cmd_texture_update(fxCmdBuffer* cmd_buffer, fxTextureId texture, void* data, fxTextureRegion* region) {
+    FX_ASSERT(texture != FX_ID_INVALID);
+    FX_ASSERT(FX_ID_INDEX(texture) < FX_CONFIG_TEXTURE_MAX);
     FX_ASSERT(!"Unimplemented");
     (void) data;
-    fxCmdTextureUpdate* cmd = (fxCmdTextureUpdate*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_TEXTURE_UPDATE, sizeof(fxCmdTextureUpdate));
+    fxCmdTextureUpdate* cmd = (fxCmdTextureUpdate*) _fx_cmd(cmd_buffer, FX_CMD_KIND_TEXTURE_UPDATE, sizeof(fxCmdTextureUpdate));
     cmd->texture = texture;
     cmd->region = *region;
 }
 
-void fx_cmd_draw(fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_vertex) {
-    fxCmdDraw* cmd = (fxCmdDraw*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_DRAW, sizeof(fxCmdDraw));
+void fx_cmd_draw(fxCmdBuffer* cmd_buffer, fxPrimitiveKind primitive, uint32_t count, uint32_t first_vertex) {
+    fxCmdDraw* cmd = (fxCmdDraw*) _fx_cmd(cmd_buffer, FX_CMD_KIND_DRAW, sizeof(fxCmdDraw));
     cmd->primitive = primitive;
     cmd->count = count;
     cmd->first_vertex = first_vertex;
 }
 
-void fx_cmd_draw_indexed(fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_index, uint32_t first_vertex) {
-    fxCmdDraw* cmd = (fxCmdDraw*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_DRAW_INDEXED, sizeof(fxCmdDraw));
+void fx_cmd_draw_indexed(fxCmdBuffer* cmd_buffer, fxPrimitiveKind primitive, uint32_t count, uint32_t first_index, uint32_t first_vertex) {
+    fxCmdDraw* cmd = (fxCmdDraw*) _fx_cmd(cmd_buffer, FX_CMD_KIND_DRAW_INDEXED, sizeof(fxCmdDraw));
     cmd->primitive = primitive;
     cmd->count = count;
     cmd->first_index = first_index;
     cmd->first_vertex = first_vertex;
 }
 
-void fx_cmd_draw_instanced(fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_vertex, uint32_t instance_count) {
-    fxCmdDrawInstanced* cmd = (fxCmdDrawInstanced*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_DRAW_INSTANCED, sizeof(fxCmdDrawInstanced));
+void fx_cmd_draw_instanced(fxCmdBuffer* cmd_buffer, fxPrimitiveKind primitive, uint32_t count, uint32_t first_vertex, uint32_t instance_count) {
+    fxCmdDrawInstanced* cmd = (fxCmdDrawInstanced*) _fx_cmd(cmd_buffer, FX_CMD_KIND_DRAW_INSTANCED, sizeof(fxCmdDrawInstanced));
     cmd->primitive = primitive;
     cmd->count = count;
     cmd->first_vertex = first_vertex;
     cmd->instance_count = instance_count;
 }
 
-void fx_cmd_draw_instanced_indexed(fxCmdBuffer cmd_buffer, fxPrimitiveType primitive, uint32_t count, uint32_t first_index, uint32_t first_vertex,
+void fx_cmd_draw_instanced_indexed(fxCmdBuffer* cmd_buffer, fxPrimitiveKind primitive, uint32_t count, uint32_t first_index, uint32_t first_vertex,
     uint32_t instance_count) {
-    fxCmdDrawInstanced* cmd = (fxCmdDrawInstanced*) _fx_cmd(cmd_buffer, FX_CMD_TYPE_DRAW_INSTANCED_INDEXED, sizeof(fxCmdDrawInstanced));
+    fxCmdDrawInstanced* cmd = (fxCmdDrawInstanced*) _fx_cmd(cmd_buffer, FX_CMD_KIND_DRAW_INSTANCED_INDEXED, sizeof(fxCmdDrawInstanced));
     cmd->primitive = primitive;
     cmd->count = count;
     cmd->first_index = first_index;
@@ -1225,7 +1354,36 @@ void fx_cmd_draw_instanced_indexed(fxCmdBuffer cmd_buffer, fxPrimitiveType primi
 #elif defined(FX_GL33_IMPL)
 #include "fx.gl33.h"
 #else
-#error "No implementation"
+#include "fx.null.h"
 #endif
 
 #endif
+
+/*
+ * ---------------------------------- LICENSE ----------------------------------
+ * This is free and unencumbered software released into the public domain.
+ *
+ * Anyone is free to copy, modify, publish, use, compile, sell, or
+ * distribute this software, either in source code form or as a compiled
+ * binary, for any purpose, commercial or non-commercial, and by any
+ * means.
+ *
+ * In jurisdictions that recognize copyright laws, the author or authors
+ * of this software dedicate any and all copyright interest in the
+ * software to the public domain. We make this dedication for the benefit
+ * of the public at large and to the detriment of our heirs and
+ * successors. We intend this dedication to be an overt act of
+ * relinquishment in perpetuity of all present and future rights to this
+ * software under copyright law.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * For more information, please refer to <http://unlicense.org>
+ * =============================================================================
+ */

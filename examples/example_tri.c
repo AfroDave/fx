@@ -32,15 +32,16 @@ int32_t main(void) {
     glfwMakeContextCurrent(w);
     glfwSwapInterval(1);
 
-    fxCtx ctx; {
+    fxCtx* ctx;
+    fxSystemInfo info; {
         fxCfg cfg = {};
         cfg.log = fn_log;
         cfg.fn_address = fn_address;
-        ctx = fx(&cfg);
+        ctx = fx(&cfg, &info);
     }
 
-    fxPipeline pipeline; {
-        fxShader vertex; {
+    fxPipelineId pipeline; {
+        fxShaderId vertex; {
             fxShaderCfg cfg = {};
             cfg.stage = FX_SHADER_STAGE_VERTEX;
             cfg.source =
@@ -51,7 +52,7 @@ int32_t main(void) {
                 "}\n";
             vertex = fx_shader(ctx, &cfg);
         }
-        fxShader geometry; {
+        fxShaderId geometry; {
             fxShaderCfg cfg = {};
             cfg.stage = FX_SHADER_STAGE_GEOMETRY;
             cfg.source =
@@ -76,16 +77,17 @@ int32_t main(void) {
                 "}\n";
             geometry = fx_shader(ctx, &cfg);
         }
-        fxShader fragment; {
+        fxShaderId fragment; {
             fxShaderCfg cfg = {};
             cfg.stage = FX_SHADER_STAGE_FRAGMENT;
             cfg.source =
                 "#version 330 core\n"
                 "#extension GL_ARB_shading_language_420pack: enable\n"
                 "#extension GL_ARB_gpu_shader5: enable\n"
+                "in vec2 f_texcoord0;\n"
                 "out vec4 o_colour;\n"
                 "void main() {\n"
-                "    o_colour = vec4(1.0f);\n"
+                "    o_colour = vec4(1.0f, 1.0f, 1.0f, 1.0f);\n"
                 "}\n";
             fragment = fx_shader(ctx, &cfg);
         }
@@ -96,15 +98,15 @@ int32_t main(void) {
         pipeline = fx_pipeline(ctx, &cfg);
     }
 
-    fxCmdBuffer cmd_buffer = fx_cmd_buffer(ctx);
+    fxCmdBuffer* cmd_buffer = fx_cmd_buffer(ctx);
     while(!glfwWindowShouldClose(w)) {
         int32_t width, height;
         glfwGetWindowSize(w, &width, &height);
 
-        fx_cmd_begin_default_pass(cmd_buffer, 0x000000FF, 1.0f, 0);
+        fx_cmd_begin_pass_default_clear(cmd_buffer, width, height);
         fx_cmd_viewport(cmd_buffer, 0, 0, width, height);
         fx_cmd_bind_pipeline(cmd_buffer, pipeline);
-        fx_cmd_draw(cmd_buffer, FX_PRIMITIVE_TYPE_POINT_LIST, 1, 0);
+        fx_cmd_draw(cmd_buffer, FX_PRIMITIVE_KIND_POINT_LIST, 1, 0);
         fx_cmd_end_pass(cmd_buffer);
 
         fx_submit(ctx, &cmd_buffer, 1);

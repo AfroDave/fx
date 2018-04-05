@@ -34,11 +34,12 @@ int32_t main(void) {
 
     example(WIDTH, HEIGHT, "Example Textured Cube");
 
-    fxCtx ctx; {
+    fxCtx* ctx;
+    fxSystemInfo info; {
         fxCfg cfg = {};
         cfg.log = fn_log;
         cfg.fn_address = fn_address;
-        ctx = fx(&cfg);
+        ctx = fx(&cfg, &info);
     }
 
     typedef struct Vertex {
@@ -89,29 +90,29 @@ int32_t main(void) {
         23, 22, 20,
     };
 
-    fxBuffer vbo; {
+    fxBufferId vbo; {
         fxBufferCfg cfg = {};
-        cfg.type = FX_BUFFER_TYPE_VERTEX;
+        cfg.kind = FX_BUFFER_KIND_VERTEX;
         cfg.size = sizeof(vertices);
         vbo = fx_buffer(ctx, &cfg, vertices, sizeof(vertices));
     }
 
-    fxBuffer ibo; {
+    fxBufferId ibo; {
         fxBufferCfg cfg = {};
-        cfg.type = FX_BUFFER_TYPE_INDEX;
+        cfg.kind = FX_BUFFER_KIND_INDEX;
         cfg.size = sizeof(indices);
         ibo = fx_buffer(ctx, &cfg, indices, sizeof(indices));
     }
 
-    fxBuffer ubo; {
+    fxBufferId ubo; {
         fxBufferCfg cfg = {};
-        cfg.type = FX_BUFFER_TYPE_UNIFORM;
+        cfg.kind = FX_BUFFER_KIND_UNIFORM;
         cfg.size = sizeof(kjMat4f);
         cfg.flags = FX_BUFFER_DYNAMIC;
         ubo = fx_buffer(ctx, &cfg, NULL, 0);
     }
 
-    fxTexture tex; {
+    fxTextureId tex; {
         fxTextureCfg cfg = {};
         cfg.format = FX_FORMAT_R8UN;
         cfg.width = 8;
@@ -126,18 +127,20 @@ int32_t main(void) {
             0x66, 0x66, 0x66, 0x66, 0xBB, 0xBB, 0xBB, 0xBB,
             0x66, 0x66, 0x66, 0x66, 0xBB, 0xBB, 0xBB, 0xBB,
         };
-        tex = fx_texture(ctx, &cfg, checkerboard, sizeof(checkerboard));
+        uint32_t sizes[] = { sizeof(checkerboard) };
+        void* datas[] = { checkerboard };
+        tex = fx_texture(ctx, &cfg, datas, sizes);
     }
 
-    fxSampler sampler; {
+    fxSamplerId sampler; {
         fxSamplerCfg cfg = {};
         cfg.wrap_u = FX_WRAP_MODE_CLAMP_TO_EDGE;
         cfg.wrap_v = FX_WRAP_MODE_CLAMP_TO_EDGE;
         sampler = fx_sampler(ctx, &cfg);
     }
 
-    fxPipeline pipeline; {
-        fxShader vertex; {
+    fxPipelineId pipeline; {
+        fxShaderId vertex; {
             fxShaderCfg cfg = {};
             cfg.stage = FX_SHADER_STAGE_VERTEX;
             cfg.source =
@@ -163,7 +166,7 @@ int32_t main(void) {
                 "}\n";
             vertex = fx_shader(ctx, &cfg);
         }
-        fxShader fragment; {
+        fxShaderId fragment; {
             fxShaderCfg cfg = {};
             cfg.stage = FX_SHADER_STAGE_FRAGMENT;
             cfg.source =
@@ -175,7 +178,7 @@ int32_t main(void) {
                 "    vec2 f_texcoord0;\n"
                 "    vec4 f_colour0;\n"
                 "};\n"
-                "layout(location=0) uniform sampler2D u_sampler;\n"
+                "uniform sampler2D u_sampler;\n"
                 "out vec4 o_colour;\n"
                 "void main() {\n"
                 "    o_colour = vec4(vec3(texture2D(u_sampler, f_texcoord0).r * f_colour0), 1.0f);\n"
@@ -194,27 +197,27 @@ int32_t main(void) {
         pipeline = fx_pipeline(ctx, &cfg);
     }
 
-    fxCmdBuffer cmd_buffer = fx_cmd_buffer(ctx);
+    fxCmdBuffer* cmd_buffer = fx_cmd_buffer(ctx);
     while(!example_should_close()) {
         int32_t width, height;
         glfwGetWindowSize(FX_EXAMPLE_WINDOW, &width, &height);
 
         kjMat4f proj = kj_mat4f_perspective(60.0f * KJ_D2R, (float) width / (float) height, 0.01f, 100.0f);
         kjMat4f view = kj_mat4f_look_at(kj_vec3f(0.0f, 1.5f, 4.0f), kj_vec3f_zero(), kj_vec3f(0.0f, 1.0f, 0.0f));
-        kjMat4f model = kj_mat4f_rotate_y(glfwGetTime());
+        kjMat4f model = kj_mat4f_rotate_y(glfwGetTime() * 0.1f);
         kjMat4f mvp = kj_mat4f_mul(kj_mat4f_mul(proj, view), model);
 
         fx_buffer_update(ctx, ubo, (void*) &mvp, sizeof(kjMat4f), 0);
 
-        fx_cmd_begin_default_pass(cmd_buffer, 0x000000FF, 1.0f, 0);
+        fx_cmd_begin_pass_default_clear(cmd_buffer, width, height);
         fx_cmd_viewport(cmd_buffer, 0, 0, width, height);
         fx_cmd_bind_pipeline(cmd_buffer, pipeline);
         fx_cmd_bind_vertex_buffers(cmd_buffer, &vbo, 1);
-        fx_cmd_bind_index_buffer(cmd_buffer, ibo, FX_INDEX_TYPE_U16);
+        fx_cmd_bind_index_buffer(cmd_buffer, ibo, FX_INDEX_KIND_U16);
         fx_cmd_bind_uniform_buffer(cmd_buffer, ubo, 0, sizeof(kjMat4f), 0);
         fx_cmd_bind_textures(cmd_buffer, &tex, 1);
         fx_cmd_bind_samplers(cmd_buffer, &sampler, 1);
-        fx_cmd_draw_indexed(cmd_buffer, FX_PRIMITIVE_TYPE_TRIANGLE_LIST, COUNT_OF(indices), 0, 0);
+        fx_cmd_draw_indexed(cmd_buffer, FX_PRIMITIVE_KIND_TRIANGLE_LIST, COUNT_OF(indices), 0, 0);
         fx_cmd_end_pass(cmd_buffer);
 
         fx_submit(ctx, &cmd_buffer, 1);

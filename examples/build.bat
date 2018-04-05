@@ -16,4 +16,4 @@ if "%1" == "gl33" (
 set LIBS=kernel32.lib glfw3.lib gdi32.lib
 
 %CC% %CFLAGS% "examples\example_tri.c" -link %LIBS% -out:"examples\example_tri_%PLATFORM%_%IMPL%.exe"
-REM %CC% %CFLAGS% "examples\example_texcube.c" -link %LIBS% -out:"examples\example_texcube_%PLATFORM%_%IMPL%.exe"
+%CC% %CFLAGS% "examples\example_texcube.c" -link %LIBS% -out:"examples\example_texcube_%PLATFORM%_%IMPL%.exe"
